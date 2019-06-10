@@ -19,19 +19,18 @@ start:
         mov     al, 0b11100011
         int     0x14            ; http://stanislavs.org/helppc/int_14-0.html
 
+        mov     si, mios
         call    puts
-        db      'mios', 10, 0
+        mov     si, hello
         call    puts
-        db      'hello os world', 10, 0
 
 hang:
         cli                     ; clear interrupt flag
         hlt
         jmp     hang
 
-;;;; print null-terminated string located right after the call instruction
+;;;; print null-terminated string at SI
 puts:
-        xchg    [esp], si
         push    ax
 .1:     mov     al, [si]
         inc     si
@@ -40,7 +39,6 @@ puts:
         call    putc
         jmp     .1
 .2:     pop     ax
-        xchg    [esp], si
         ret
 
 ;;;; print character in AL and add a carriage return if AL is a new line
@@ -62,7 +60,11 @@ putc:
 .4:     popa
         ret
 
-; `$` represents the current address, `$$` represents the address of the first
-; instruction, so `$ - $$` is the number of bytes from the start to here
+mios    db      'mios', 10, 0
+hello   db      'hello os world', 10, 0
+
+;;;; `$` represents the current address, `$$` represents the address of the
+;;;; first instruction, so `$ - $$` is the number of bytes from the start to
+;;;; here
 times   510-($-$$) db 0
 dw      0xaa55                  ; boot signature
