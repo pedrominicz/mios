@@ -2,10 +2,8 @@
 
 ### useful resources
 
-http://www.brokenthorn.com/Resources/OSDev3.html
+https://en.wikipedia.org/wiki/INT_13H#INT_13h_AH=42h:_Extended_Read_Sectors_From_Drive
 
-http://www.brokenthorn.com/Resources/OSDev4.html
+https://github.com/mit-pdos/xv6-public/blob/master/Makefile#L93
 
 https://github.com/jhu-cs318/pintos/blob/master/src/threads/loader.S
-
-http://stanislavs.org/helppc/int_table.html
