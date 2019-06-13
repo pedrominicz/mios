@@ -1,7 +1,9 @@
 #!/bin/sh
-nasm -f bin boot.asm -o boot.bin
-qemu-system-x86_64 -drive format=raw,file=boot.bin
-# run qemu in debug mode in a detached screen session and connect to it using
-# radare2
-#screen -d -m qemu-system-x86_64 -s -S -drive format=raw,file=boot.bin
-#r2 -b 16 -d gdb://localhost:1234
+#debug=true
+
+if [ -z $debug ]; then
+  make qemu
+else
+  make debug
+fi
+make clean
