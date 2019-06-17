@@ -1,5 +1,5 @@
 #!/bin/sh
-debug=true
+#debug=true
 #nasm -f bin boot.asm -o boot.bin
 #ndisasm boot.bin | head
 #rm boot.bin

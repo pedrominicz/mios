@@ -5,8 +5,8 @@
 ;;;; a boot device.
 
 org 0x7c00                      ; The BIOS loads the bootloader at 0x7c00.
-bits 16                         ; 16-bit real mode.
 
+bits 16                         ; 16-bit real mode.
 start:
         cld                     ; Clear direction flag.
         xor ax, ax
@@ -52,11 +52,37 @@ start:
 
         mov si, success_msg
         call puts
+
+        cli
+        lgdt [gdt_descriptor]
+        mov eax, cr0
+        or al, 1
+        mov cr0, eax
+        sti
+
+        call CODE_SEGMENT:start32
+
+;;;; Hang. Note that this is here because `jcxz hang` is a short jump.
 hang:
         cli
         hlt
         jmp hang
 
+times 4 nop                     ; A few `nop`s to make finding `start32` in
+                                ; radare2 easy.
+
+bits 32
+start32:
+        mov ax, DATA_SEGMENT
+        mov ds, ax
+        mov ss, ax
+        mov es, ax
+        mov fs, ax              ; Extra segment register #2.
+        mov gs, ax              ; Extra segment register #3.
+
+        jmp [di + 0x18]        ; ELF entry point.
+
+bits 16
 ;;;; Print null-terminated string at `si`. Note that a carriage return will be
 ;;;; automatically added upon encountering a new line.
 puts:
@@ -174,9 +200,9 @@ dq 0x00cf9a000000ffff           ; Code segment.
 dq 0x00cf92000000ffff           ; Data segment.
 gdt_end:
 
-NULL_SELECTOR equ 0x00
-CODE_SELECTOR equ 0x08
-DATA_SELECTOR equ 0x10
+NULL_SEGMENT equ 0x0000
+CODE_SEGMENT equ 0x0008
+DATA_SEGMENT equ 0x0010
 
 align 16
 gdt_descriptor:
