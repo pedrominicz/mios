@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-__attribute__((noreturn)) void mios_init(void) {
+void mios_init(void) {
   static uint8_t* const terminal = (uint8_t*)0xb8000;
 
   for(size_t i = 0; i < 80 * 25 * 2; i += 2) {
@@ -32,5 +32,4 @@ __attribute__((noreturn)) void mios_init(void) {
     asm volatile ("cli");
     asm volatile ("hlt");
   }
-  __builtin_unreachable();
 }

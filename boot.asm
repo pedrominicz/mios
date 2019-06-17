@@ -6,7 +6,7 @@
 
 org 0x7c00                      ; The BIOS loads the bootloader at 0x7c00.
 
-bits 16                         ; 16-bit real mode.
+bits 16                         ; 16-bit Real Mode.
 start:
         cld                     ; Clear direction flag.
         xor ax, ax
@@ -19,8 +19,8 @@ start:
         mov [drive_number], dl  ; The BIOS passes the drive the loader was read
                                 ; from in `dl`.
 
-;;;; Initialize serial port 0 with BIOS interrupt 0x14,0, so we can report
-;;;; status even without VGA. Note that `ah` was zeroed.
+        ; Initialize serial port 0 with BIOS interrupt 0x14,0, so we can report
+        ; status even without VGA. Note that `ah` was zeroed.
         xor dx, dx              ; Zero based serial port number.
         mov al, 0b11100011      ; 9600 baud, no parity, 1 stop bit, 8 data
                                 ; bits.
@@ -39,7 +39,8 @@ start:
         mov si, [di + 0x1c]     ; The program header table must immediately
         cmp si, 0x34            ; follow the ELF header.
         jne hang
-        add si, di
+        add si, di              ; Make `ds:si` point to the program header
+                                ; table.
 
         mov bx, [di + 0x2a]     ; Size of a program header table entry.
         mov cx, [di + 0x2c]     ; Number of segments in program.
@@ -47,20 +48,18 @@ start:
 
 .loop:
         call read_segment
-        add si, bx
+        add si, bx              ; Adjust `ds:si` to the next entry in the
+                                ; program header table.
         loop .loop
 
-        mov si, success_msg
-        call puts
-
-        cli
-        lgdt [gdt_descriptor]
-        mov eax, cr0
+        cli                     ; Clear interrupt flag.
+        lgdt [gdt_descriptor]   ; Load the Global Descriptor Table (GDT).
+        mov eax, cr0            ; Set Protection Enable bit in `cr0`
         or al, 1
         mov cr0, eax
-        sti
+        sti                     ; Set interrupt flag.
 
-        call CODE_SEGMENT:start32
+        jmp CODE_SEGMENT:start32 ; Long jump: resets code segment.
 
 ;;;; Hang. Note that this is here because `jcxz hang` is a short jump.
 hang:
@@ -71,7 +70,7 @@ hang:
 times 4 nop                     ; A few `nop`s to make finding `start32` in
                                 ; radare2 easy.
 
-bits 32
+bits 32                         ; 32-bit Protected Mode.
 start32:
         mov ax, DATA_SEGMENT
         mov ds, ax
@@ -80,7 +79,7 @@ start32:
         mov fs, ax              ; Extra segment register #2.
         mov gs, ax              ; Extra segment register #3.
 
-        jmp [di + 0x18]        ; ELF entry point.
+        jmp [di + 0x18]         ; ELF entry point.
 
 bits 16
 ;;;; Print null-terminated string at `si`. Note that a carriage return will be
@@ -134,15 +133,18 @@ read_sector:
         popa
         ret
 
+;;;; Read segment from ELF subroutine. Reads the segment described by the
+;;;; program header table entry at `ds:si` into its physical address.
 read_segment:
         pusha
 
         mov ebx, [si + 0x4]     ; Segment's offset in file in bytes.
-        shr ebx, 9              ; Divide by sector size (512 bytes).
+        shr ebx, 9              ; Translate from bytes to sectors (divide by
+                                ; sector size).
         inc ebx                 ; Kernel starts at sector 1.
 
         mov edx, [si + 0xc]     ; Segment's physical address.
-        and edx, 0xfffffe00
+        and edx, 0xfffffe00     ; Round down to sector boundary.
         mov di, dx
         shr edx, 4
         and dx, 0xf000
@@ -150,6 +152,10 @@ read_segment:
 
         mov ecx, [si + 0x10]    ; Segment's size in file (can be 0).
         jecxz .return
+
+        ; Adjust counter to the number of `read_sector` calls necessary to read
+        ; the whole segment. Note that a single `read_sector` will read 4096
+        ; bytes.
         add ecx, 4095
         shr ecx, 12             ; Divide by the number of bytes `read_sector`
                                 ; reads (4096).
@@ -157,7 +163,7 @@ read_segment:
         mov al, '.'
 .loop:
         call read_sector
-        call putchar
+        call putchar            ; Print a dot every 8 sectors read.
 
         add ebx, 8              ; Adjust `ebx` to the next unread sector.
         add di, 4096            ; Adjust write address.
@@ -171,16 +177,12 @@ read_segment:
         popa
         ret
 
-times 384 - (data_end-data) - ($-$$) nop
-
-data:
+times 4 nop                     ; A few `nop`s to make it easier to discern
+                                ; between data and code in radare2.
 
 drive_number db 0
 
 boot_msg db 'mios bootloader', 10, 0
-success_msg db 10, 'success', 0
-
-data_end:
 
 align 4
 disk_address_packet:
@@ -193,6 +195,7 @@ disk_address_packet:
         dw 0x0000
         dd 0x00000000
 
+;;;; Temporary Global Descriptor Table.
 align 16
 gdt:
 dq 0x0000000000000000           ; Null segment.
@@ -209,6 +212,7 @@ gdt_descriptor:
 dw gdt_end - gdt - 1
 dq gdt
 
+;;;; 
 times 446 - ($-$$) nop
 
 mbr:
