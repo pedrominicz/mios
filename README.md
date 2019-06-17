@@ -1,11 +1,19 @@
 `chmod +x run` and `./run` to run.
 
-### useful resources
+### linker resources
 
-https://en.wikipedia.org/wiki/INT_13H#INT_13h_AH=42h:_Extended_Read_Sectors_From_Drive
+https://github.com/jhu-cs318/pintos/blob/master/src/threads/kernel.lds.S
 
-https://github.com/mit-pdos/xv6-public/blob/master/Makefile#L93
+https://github.com/mit-pdos/xv6-public/blob/master/kernel.ld
 
-https://github.com/jhu-cs318/pintos/blob/master/src/threads/loader.S
+https://sourceware.org/binutils/docs/ld/Output-Section-Fill.html#index-_003dfillexp
 
-http://www.bioscentral.com/misc/biosint13.htm
+https://github.com/mit-pdos/xv6-public/blob/master/Makefile#L123
+
+### ELF resources
+
+https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header
+
+https://github.com/mit-pdos/xv6-public/blob/master/bootmain.c
+
+`man readelf` (`readelf -l`)

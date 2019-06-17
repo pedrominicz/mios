@@ -4,9 +4,9 @@ ENTRY(start)
 
 SECTIONS
 {
-  . = 0x8000;
+  . = 0x80000;
 
-  .text : AT(0x8000) { *(.start .text) } =0x90
+  .text : AT(0x80000) { *(.start .text) } =0x90
   .rodata : { *(.rodata .rodata.*) }
   .data : { *(.data) }
 
