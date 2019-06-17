@@ -1,2 +1,3 @@
-boot.bin
+*.bin
+*.o
 mios.img
