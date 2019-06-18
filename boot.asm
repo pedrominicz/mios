@@ -8,6 +8,7 @@ org 0x7c00                      ; The BIOS loads the bootloader at 0x7c00.
 
 bits 16                         ; 16-bit Real Mode.
 start:
+        cli                     ; Clear interrupt flag and never set it again.
         cld                     ; Clear direction flag.
         xor ax, ax
         mov ds, ax              ; Data segment register.
@@ -29,6 +30,7 @@ start:
         mov si, boot_msg
         call puts
 
+        ; Note that `es` is equal to `ds`.
         mov di, 0x8000
         mov bx, 1
         call read_sector
@@ -52,12 +54,10 @@ start:
                                 ; program header table.
         loop .loop
 
-        cli                     ; Clear interrupt flag.
         lgdt [gdt_descriptor]   ; Load the Global Descriptor Table (GDT).
         mov eax, cr0            ; Set Protection Enable bit in `cr0`
         or al, 1
         mov cr0, eax
-        sti                     ; Set interrupt flag.
 
         jmp CODE_SEGMENT:start32 ; Long jump: resets code segment.
 
