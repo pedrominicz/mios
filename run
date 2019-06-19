@@ -1,13 +1,20 @@
 #!/bin/sh
 #debug=true
 #nasm -f bin boot.asm -o boot.bin
-#ndisasm boot.bin | head
+#ndisasm -b 32 boot.bin | head
 #rm boot.bin
 #exit
 
+qemu_cmd=(qemu-system-i386 -drive file=mios.img,index=0,media=disk,format=raw)
+
+make all
 if [ -z $debug ]; then
-  make qemu
+  "${qemu_cmd[@]}"
 else
-  make debug
+  # Start QEMU in a detached screen session.
+  screen -d -m "${qemu_cmd[@]}" -s -S
+  sleep 1 # Give time for QEMU to start.
+  # `e dbg.bpinmaps=false` allows placing breakpoints outside mapped memory.
+  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x7c00; dc'
 fi
 make clean

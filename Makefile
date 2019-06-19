@@ -20,15 +20,6 @@ kernel.bin: kernel.ld $(OBJ)
 entry.o: entry.asm
 	nasm -f elf $< -o $@
 
-qemu: mios.img
-	qemu-system-i386 -drive file=$<,index=0,media=disk,format=raw
-
-debug: mios.img
-	screen -d -m qemu-system-i386 -s -S -drive file=$<,index=0,media=disk,format=raw
-	@sleep 1 # Give time for QEMU to start.
-	@# `e dbg.bpinmaps=false` allows placing breakpoints outside mapped memory.
-	r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x7c00; dc; aaa'
-
 clean:
 	rm -f mios.img $(wildcard *.bin) $(OBJ)
 
