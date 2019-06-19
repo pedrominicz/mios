@@ -17,42 +17,17 @@ start:
         mov sp, start           ; Stack pointer.
         mov bp, sp              ; Stack base pointer.
 
-        mov [drive_number], dl  ; The BIOS passes the drive the loader was read
-                                ; from in `dl`.
+.1:     in al, 0x64             ; Wait while busy.
+        test al, 2
+        jnz .1
+        mov al, 0xd1
+        out 0x64, al            ; Write to output port.
 
-        ; Initialize serial port 0 with BIOS interrupt 0x14,0, so we can report
-        ; status even without VGA. Note that `ah` was zeroed.
-        xor dx, dx              ; Zero based serial port number.
-        mov al, 0b11100011      ; 9600 baud, no parity, 1 stop bit, 8 data
-                                ; bits.
-        int 0x14
-
-        mov si, boot_msg
-        call puts
-
-        ; Note that `es` is equal to `ds`.
-        mov di, 0x8000
-        mov bx, 1
-        call read_sector
-
-        cmp dword [di], 0x464c457f ; ELF magic.
-        jne hang
-
-        mov si, [di + 0x1c]     ; The program header table must immediately
-        cmp si, 0x34            ; follow the ELF header.
-        jne hang
-        add si, di              ; Make `ds:si` point to the program header
-                                ; table.
-
-        mov bx, [di + 0x2a]     ; Size of a program header table entry.
-        mov cx, [di + 0x2c]     ; Number of segments in program.
-        jcxz hang
-
-.loop:
-        call read_segment
-        add si, bx              ; Adjust `ds:si` to the next entry in the
-                                ; program header table.
-        loop .loop
+.2:     in al, 0x64
+        test al, 2
+        jnz .2
+        mov al, 0xdf
+        out 0x60, al            ; Enable A20.
 
         lgdt [gdt_descriptor]   ; Load the Global Descriptor Table (GDT).
         mov eax, cr0            ; Set Protection Enable bit in `cr0`
@@ -61,139 +36,141 @@ start:
 
         jmp CODE_SEGMENT:start32 ; Long jump: resets code segment.
 
-;;;; Hang. Note that this is here because `jcxz hang` is a short jump.
-hang:
-        cli
-        hlt
-        jmp hang
-
-times 4 nop                     ; A few `nop`s to make finding `start32` in
-                                ; radare2 easy.
-
 bits 32                         ; 32-bit Protected Mode.
 start32:
         mov ax, DATA_SEGMENT
         mov ds, ax
         mov ss, ax
         mov es, ax
+
+        xor ax, ax
         mov fs, ax              ; Extra segment register #2.
         mov gs, ax              ; Extra segment register #3.
 
-        jmp [di + 0x18]         ; ELF entry point.
+        mov edi, 0x8000
+        mov eax, 1
+        call read_sector        ; Note that only the first 512 bytes of the ELF
+                                ; are read, so a maximum of 14 program header
+                                ; entries may be read.
 
-bits 16
-;;;; Print null-terminated string at `si`. Note that a carriage return will be
-;;;; automatically added upon encountering a new line.
-puts:
-        pusha
+        cmp dword [edi], 0x464c457f ; ELF magic.
+        jne hang
+
+        mov esi, [edi + 0x1c]   ; The program header table must immediately
+        cmp esi, 0x34           ; follow the ELF header.
+        jne hang
+        add esi, edi            ; Make `ds:esi` point to the program header
+                                ; table.
+
+        cmp word [edi + 0x2a], 0x20 ; Size of a program header table entry.
+        jne hang
+
+        movzx ecx, word [edi + 0x2c] ; Number of segments in program.
+        jcxz hang
+        cmp ecx, 14
+        jbe .loop
+        mov ecx, 14
+
 .loop:
-        lodsb                   ; Load byte at `ds:si` into `al` and increment
-                                ; or decrement `si` according to the direction
-                                ; flag.
-        cmp al, 0
-        je .return
-        call putchar
-        jmp .loop
-.return:
-        popa
+        call read_segment
+        add esi, 0x20           ; Adjust `ds:esi` to the next entry in the
+                                ; program header table.
+        loop .loop
+
+        jmp [edi + 0x18]        ; ELF entry point.
+
+;;;; Note that this is here because `jcxz hang` is a short jump.
+hang:
+        cli
+        hlt
+        jmp hang
+
+;;;; Wait disk to be ready. Note that `al` and `dx` are not preserved.
+wait_disk:
+        mov dx, 0x01f7          ; Status and command register.
+.loop:
+        in al, dx
+        and al, 0b11000000      ; Mask the "busy" and "drive ready" bits.
+        cmp al, 0b01000000      ; Drive not busy and ready.
+        jne .loop
         ret
 
-;;;; Print character in `al`. Note that a carriage return will be automatically
-;;;; added if `al` contains a new line.
-putchar:
-        pusha
-.putchar:
-        xor bx, bx              ; Page number and foreground pixel color.
-        mov ah, 0x0e
-        int 0x10                ; Write character in teletype mode.
-        xor dx, dx              ; Zero based serial port number.
-        mov ah, 0x01
-        int 0x14                ; Send character to communications port.
-        cmp al, 10              ; New line.
-        jne .return
-        mov al, 13              ; Carriage return.
-        jmp .putchar
-.return:
-        popa
-        ret
-
-;;;; Read sector subroutine. Reads 8 sectors from drive into `es:di`. Starts
-;;;; reading from sector `bx`.
+;;;; Read sector subroutine. Reads 8 sectors from drive into `es:edi`. Starts
+;;;; reading from sector `eax`. Note that `eax` is not preserved.
 read_sector:
         pusha
-        mov dl, [drive_number]
-        ; Fill disk address packet (DAP).
-        mov [dap_address], di
-        mov [dap_segment], es
-        mov [dap_start_sector], bx
-        mov si, disk_address_packet
-        mov ah, 0x42
-        int 0x13
-        jc hang
+        push eax
+        call wait_disk          ; `wait_disk` modifies `eax`.
+        mov dx, 0x01f2
+        mov al, 1
+        out dx, ax              ; Read 8 sectors.
+        pop eax
+
+        mov dx, 0x01f3
+        out dx, al              ; Bits 0-7 of sector number.
+        shr eax, 8
+        mov dx, 0x01f4
+        out dx, al              ; Bits 8-15 of sector number.
+        shr eax, 8
+        mov dx, 0x01f5
+        out dx, al              ; Bits 16-23 of sector number.
+        shr eax, 8
+        or al, 0b11100000       ; Drive mask: use logical block addressing and
+                                ; select the master drive. Note that bits 7 and
+                                ; 5 are always 1.
+        mov dx, 0x01f6          ; Bits 24-27 of sector number.
+        out dx, al
+
+        mov dx, 0x01f7
+        mov al, 0x20
+        out dx, al              ; Read with retry.
+        call wait_disk
+
+        mov dx, 0x01f0
+        mov ecx, 128
+        rep insd                ; Repeat input double word from port `dx` into
+                                ; `es:edi`.
         popa
         ret
 
 ;;;; Read segment from ELF subroutine. Reads the segment described by the
-;;;; program header table entry at `ds:si` into its physical address.
+;;;; program header table entry at `ds:esi` into its physical address.
 read_segment:
         pusha
-
-        mov ebx, [si + 0x4]     ; Segment's offset in file in bytes.
-        shr ebx, 9              ; Translate from bytes to sectors (divide by
+        mov eax, [esi + 0x4]    ; Segment's offset in file in bytes.
+        shr eax, 9              ; Translate from bytes to sectors (divide by
                                 ; sector size).
-        inc ebx                 ; Kernel starts at sector 1.
+        inc eax                 ; Kernel starts at sector 1.
 
-        mov edx, [si + 0xc]     ; Segment's physical address.
-        and edx, 0xfffffe00     ; Round down to sector boundary.
-        mov di, dx
-        shr edx, 4
-        and dx, 0xf000
-        mov es, dx
+        mov edi, [esi + 0xc]    ; Segment's physical address.
+        push edi
+        and edi, 0xfffffe00     ; Round down to sector boundary.
 
-        mov ecx, [si + 0x10]    ; Segment's size in file (can be 0).
-        jecxz .return
-
+        mov ecx, [esi + 0x10]   ; Segment's size in file (can be 0).
+        jecxz .clear
         ; Adjust counter to the number of `read_sector` calls necessary to read
-        ; the whole segment. Note that a single `read_sector` will read 4096
-        ; bytes.
-        add ecx, 4095
-        shr ecx, 12             ; Divide by the number of bytes `read_sector`
-                                ; reads (4096).
+        ; the whole segment.
+        add ecx, 511
+        shr ecx, 9
 
-        mov al, '.'
 .loop:
         call read_sector
-        call putchar            ; Print a dot every 8 sectors read.
-
-        add ebx, 8              ; Adjust `ebx` to the next unread sector.
-        add di, 4096            ; Adjust write address.
-        jnc .continue
-        add dx, 0x1000
-        mov es, dx
-.continue:
+        inc eax                 ; Adjust `eax` to the next unread sector.
+        add edi, 512            ; Adjust write address.
         loop .loop
 
-.return:
+.clear:
+        mov eax, [esi + 0x10]
+        mov ecx, [esi + 0x14]   ; Segment's size in memory.
+        sub ecx, eax
+        pop edi
+        add edi, eax
+        inc edi
+        xor al, al
+        rep stosb               ; Repeat store `al` at `es:edi`.
+
         popa
         ret
-
-times 4 nop                     ; A few `nop`s to make it easier to discern
-                                ; between data and code in radare2.
-
-drive_number db 0
-
-boot_msg db 'mios bootloader', 10, 0
-
-align 4
-disk_address_packet:
-        db 0x10
-        db 0x00
-        dw 0x0008               ; Read 8 sectors.
-        dap_address dw 0        ; Address to which sectors will be read.
-        dap_segment dw 0        ; Segment to which sectors will be read.
-        dap_start_sector dw 0   ; First sector to read.
-        dw 0x0000
-        dd 0x00000000
 
 ;;;; Temporary Global Descriptor Table.
 align 16
@@ -203,7 +180,6 @@ dq 0x00cf9a000000ffff           ; Code segment.
 dq 0x00cf92000000ffff           ; Data segment.
 gdt_end:
 
-NULL_SEGMENT equ 0x0000
 CODE_SEGMENT equ 0x0008
 DATA_SEGMENT equ 0x0010
 
@@ -212,7 +188,10 @@ gdt_descriptor:
 dw gdt_end - gdt - 1
 dq gdt
 
-;;;; 
+;;;; Make sure the master boot record and the boot signature are in the right
+;;;; offset. `$` represents the current address, `$$` represents the address of
+;;;; the first instruction, so `$ - $$` is the number of bytes from the start
+;;;; to here.
 times 446 - ($-$$) nop
 
 mbr:

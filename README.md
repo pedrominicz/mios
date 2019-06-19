@@ -1,19 +1,13 @@
 `chmod +x run` and `./run` to run.
 
-### linker resources
-
-https://github.com/jhu-cs318/pintos/blob/master/src/threads/kernel.lds.S
-
-https://github.com/mit-pdos/xv6-public/blob/master/kernel.ld
+### useful resources
 
 https://sourceware.org/binutils/docs/ld/Output-Section-Fill.html#index-_003dfillexp
 
-https://github.com/mit-pdos/xv6-public/blob/master/Makefile#L123
+ftp://ftp.seagate.com/acrobat/reference/111-1c.pdf (sections 4.8 and 4.13)
 
-### ELF resources
+https://wiki.osdev.org/ATA_read/write_sectors#Read_in_LBA_mode
 
-https://en.wikipedia.org/wiki/Executable_and_Linkable_Format#File_header
+https://wiki.osdev.org/A20_Line#Keyboard_Controller_2
 
-https://github.com/mit-pdos/xv6-public/blob/master/bootmain.c
-
-`man readelf` (`readelf -l`)
+https://github.com/jhu-cs318/pintos/blob/master/src/threads/start.S#L50

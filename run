@@ -7,7 +7,7 @@
 
 qemu_cmd=(qemu-system-i386 -drive file=mios.img,index=0,media=disk,format=raw)
 
-make all
+make all || exit
 if [ -z $debug ]; then
   "${qemu_cmd[@]}"
 else

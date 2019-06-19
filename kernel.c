@@ -1,11 +1,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+uint8_t array[80 * 25 * 2];
+
 void mios_init(void) {
   static uint8_t* const terminal = (uint8_t*)0xb8000;
 
   for(size_t i = 0; i < 80 * 25 * 2; i += 2) {
-    terminal[i] = ' ';
+    // Try commenting line 170 in boot.asm.
+    terminal[i] = array[i] + ' ';
   }
 
   terminal[0] = 'H';
