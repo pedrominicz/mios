@@ -3,7 +3,7 @@ CFLAGS = -m32 -masm=intel -fno-pic -fno-pie -fno-stack-protector -ffreestanding 
 LDFLAGS = -m elf_i386 -s
 
 SRC = $(wildcard *.c)
-OBJ = entry.o $(SRC:.c=.o)
+OBJ = entry.o interrupt-stubs.o $(SRC:.c=.o)
 
 all: mios.img
 
