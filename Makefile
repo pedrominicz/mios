@@ -1,8 +1,9 @@
-CFLAGS = -m32 -fno-pic -fno-pie -ffreestanding -nostdlib -lgcc -Wall -Wextra
+CFLAGS = -m32 -masm=intel -fno-pic -fno-pie -ffreestanding -nostdlib -lgcc -Wall -Wextra
 # -s, --strip-all: Omit all symbol information from the output file.
 LDFLAGS = -m elf_i386 -s
 
-OBJ = entry.o kernel.o
+SRC = $(wildcard *.c)
+OBJ = entry.o $(SRC:.c=.o)
 
 all: mios.img
 

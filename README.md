@@ -11,3 +11,5 @@ https://wiki.osdev.org/ATA_read/write_sectors#Read_in_LBA_mode
 https://wiki.osdev.org/A20_Line#Keyboard_Controller_2
 
 https://github.com/jhu-cs318/pintos/blob/master/src/threads/start.S#L50
+
+https://wiki.osdev.org/ATA_PIO_Mode#x86_Code_Examples

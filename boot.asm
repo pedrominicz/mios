@@ -95,8 +95,7 @@ wait_disk:
         jne .loop
         ret
 
-;;;; Read sector subroutine. Reads 8 sectors from drive into `es:edi`. Starts
-;;;; reading from sector `eax`. Note that `eax` is not preserved.
+;;;; Read sector `eax` into `es:edi`.
 read_sector:
         pusha
         push eax
@@ -168,7 +167,6 @@ read_segment:
         inc edi
         xor al, al
         rep stosb               ; Repeat store `al` at `es:edi`.
-
         popa
         ret
 
