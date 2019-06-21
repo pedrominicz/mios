@@ -13,3 +13,5 @@ https://wiki.osdev.org/A20_Line#Keyboard_Controller_2
 https://github.com/jhu-cs318/pintos/blob/master/src/threads/start.S#L50
 
 https://wiki.osdev.org/ATA_PIO_Mode#x86_Code_Examples
+
+https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html

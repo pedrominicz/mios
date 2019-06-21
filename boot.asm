@@ -164,7 +164,6 @@ read_segment:
         sub ecx, eax
         pop edi
         add edi, eax
-        inc edi
         xor al, al
         rep stosb               ; Repeat store `al` at `es:edi`.
         popa
