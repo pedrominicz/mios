@@ -102,7 +102,7 @@ read_sector:
         call wait_disk          ; `wait_disk` modifies `eax`.
         mov dx, 0x01f2
         mov al, 1
-        out dx, ax              ; Read 8 sectors.
+        out dx, al              ; Read 8 sectors.
         pop eax
 
         mov dx, 0x01f3
