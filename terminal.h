@@ -13,6 +13,13 @@ static inline void terminal_clear(void) {
   for(size_t i = 0; i < 80 * 25 * 2; i += 2) {
     terminal[i] = ' ';
   }
+
+  cursor_x = cursor_y = 0;
+  // 0x03d4 selects which register will be used by 0x03b5.
+  outb(0x03d4, 14); // High bits of cursor position.
+  outb(0x03d5, 0);
+  outb(0x03d4, 15); // Low bits of cursor position.
+  outb(0x03d5, 0);
 }
 
 static inline void terminal_putchar(const char c) {

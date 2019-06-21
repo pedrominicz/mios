@@ -1,4 +1,4 @@
-CFLAGS = -m32 -masm=intel -fno-pic -fno-pie -ffreestanding -nostdlib -lgcc -Wall -Wextra
+CFLAGS = -m32 -masm=intel -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O0 -lgcc -Wall -Wextra
 # -s, --strip-all: Omit all symbol information from the output file.
 LDFLAGS = -m elf_i386 -s
 
@@ -18,7 +18,7 @@ boot.bin: boot.asm
 kernel.bin: kernel.ld $(OBJ)
 	$(LD) $(LDFLAGS) -T $< -o $@ $(OBJ)
 
-entry.o: entry.asm
+%.o: %.asm
 	nasm -f elf $< -o $@
 
 clean:

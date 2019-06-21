@@ -2,6 +2,10 @@
 
 ### useful resources
 
-https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
+http://www.jamesmolloy.co.uk/tutorial_html/4.-The%20GDT%20and%20IDT.html
 
-http://bochs.sourceforge.net/techspec/PORTS.LST
+https://wiki.osdev.org/Interrupt_Descriptor_Table#Structure_IA-32
+
+https://github.com/jhu-cs318/pintos/blob/master/src/threads/interrupt.c#L277
+
+https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html
