@@ -8,7 +8,7 @@
 qemu_cmd=(qemu-system-i386 -drive file=mios.img,index=0,media=disk,format=raw)
 
 make clean
-make all || exit
+make all TOOLPREFIX='i386-elf-' || exit
 if [ -z $debug ]; then
   "${qemu_cmd[@]}"
 else

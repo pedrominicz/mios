@@ -1,4 +1,7 @@
-CFLAGS = -m32 -masm=intel -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O0 -lgcc -Wall -Wextra
+#AS = $(TOOLPREFIX)as
+CC = $(TOOLPREFIX)gcc
+LD = $(TOOLPREFIX)ld
+CFLAGS = -m32 -masm=intel -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O3 -lgcc -Wall -Wextra -save-temps
 # -s, --strip-all: Omit all symbol information from the output file.
 LDFLAGS = -m elf_i386 -s
 

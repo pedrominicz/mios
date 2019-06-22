@@ -61,7 +61,7 @@ void init_idt(void) {
     idt[i] = make_interrupt_gate(interrupts[i]);
   }
 
-  uint64_t idt_descriptor = 0;
+  volatile uint64_t idt_descriptor = 0;
   idt_descriptor |= sizeof(idt) - 1;
   idt_descriptor |= (uint64_t)(uint32_t)idt << 16;
 
@@ -69,7 +69,10 @@ void init_idt(void) {
 }
 
 void interrupt_handle(const interrupt_t* const interrupt) {
-  if(interrupt->eax != 0x73706172 || interrupt->ebx != 0x74206576 || interrupt->ecx != 0x6f6c2069) return;
+  if(interrupt->eax != 0x73706172
+      || interrupt->ebx != 0x74206576
+      || interrupt->ecx != 0x6f6c2069)
+    return;
   terminal_print("interrupt\n");
 }
 

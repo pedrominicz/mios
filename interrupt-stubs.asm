@@ -32,6 +32,7 @@ DATA_SELECTOR equ 0x0010        ; Must to be equal to `DATA_SELECTOR` in
                                 ; boot.asm.
 
 section .data
+align 16
 global interrupts
 interrupts:                     ; `interrupts` will be accessed from C as
                                 ; `uintptr_t interrupts[256]`.

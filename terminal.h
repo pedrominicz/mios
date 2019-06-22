@@ -7,7 +7,7 @@
 #include <stdint.h>
 
 static uint8_t* const terminal = (uint8_t*)0xb8000;
-static size_t cursor_x = 0, cursor_y = 0;
+static volatile size_t cursor_x = 0, cursor_y = 0;
 
 static inline void terminal_clear(void) {
   for(size_t i = 0; i < 80 * 25 * 2; i += 2) {
