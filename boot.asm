@@ -86,20 +86,20 @@ hang:
         jmp hang
 
 ;;;; Wait disk to be ready. Note that `al` and `dx` are not preserved.
-wait_disk:
+%macro wait_disk 0
         mov dx, 0x01f7          ; Status and command register.
-.loop:
+%%loop:
         in al, dx
         and al, 0b11000000      ; Mask the "busy" and "drive ready" bits.
         cmp al, 0b01000000      ; Drive not busy and ready.
-        jne .loop
-        ret
+        jne %%loop
+%endmacro
 
 ;;;; Read sector `eax` into `es:edi`.
 read_sector:
         pusha
         push eax
-        call wait_disk          ; `wait_disk` modifies `eax`.
+        wait_disk               ; `wait_disk` modifies `eax`.
         mov dx, 0x01f2
         mov al, 1
         out dx, al              ; Read 8 sectors.
@@ -123,7 +123,7 @@ read_sector:
         mov dx, 0x01f7
         mov al, 0x20
         out dx, al              ; Read with retry.
-        call wait_disk
+        wait_disk
 
         mov dx, 0x01f0
         mov ecx, 128

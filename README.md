@@ -2,6 +2,8 @@ You may need a cross-compiler for this to work. Edit `TOOLPREFIX` in `run` if ne
 
 ### useful resources
 
+https://git.musl-libc.org/cgit/musl/tree/src/stdio/vfprintf.c#n153
+
 https://wiki.osdev.org/Serial_Ports#Port_Addresses
 
 https://gitlab.com/ReturnInfinity/Pure64/blob/master/src/pure64.asm#L111

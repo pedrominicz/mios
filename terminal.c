@@ -1,3 +1,4 @@
+#include "terminal.h"
 #include "x86.h"
 
 #include <stddef.h>
@@ -33,6 +34,14 @@ void terminal_clear(void) {
   outb(0x03d5, 0);
   outb(0x03d4, 15); // Low bits of cursor position.
   outb(0x03d5, 0);
+}
+
+void terminal_print_hex(uintmax_t n) {
+  static const char hex_digit[16] = "0123456789abcdef";
+  char s[sizeof(uintmax_t) + 1] = {0};
+  char* ptr = s + sizeof(uintmax_t);
+  for(; n; n >>= 4) *--ptr = hex_digit[n & 0xf];
+  terminal_print(ptr);
 }
 
 void terminal_putchar(const char c) {

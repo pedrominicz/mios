@@ -11,6 +11,12 @@ void mios_init(void) {
 
   terminal_clear();
   terminal_print("Hello interrupt world!\n");
+  terminal_print_hex(0x1234);
+  terminal_putchar('\n');
+  terminal_print_hex(0xdead);
+  terminal_putchar('\n');
+  terminal_print_hex(0xc0de);
+  terminal_putchar('\n');
 
   // Start the programmable interval timer (PIT).
   const uint32_t frequency = 50;
