@@ -7,12 +7,9 @@
 
 void mios_init(void) {
   init_interrupt();
+  init_terminal();
 
   terminal_clear();
-  asm volatile (
-      "mov eax, 1;"
-      "mov ebx, 0;"
-      "div ebx" ::: "eax", "ebx", "edx");
   terminal_print("Hello interrupt world!\n");
 
   // Start the programmable interval timer (PIT).
@@ -23,5 +20,7 @@ void mios_init(void) {
   outb(0x40, (divisor >> 8) & 0xff);
 
   sti(); // Interrupts were disabled in "boot.asm".
-  while(1) { }
+  while(1) {
+    asm volatile ("hlt");
+  }
 }

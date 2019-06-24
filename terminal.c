@@ -3,8 +3,24 @@
 #include <stddef.h>
 #include <stdint.h>
 
+static const uint16_t port1 = 0x03f8;
 static uint8_t* const terminal = (uint8_t*)0xb8000;
 static volatile size_t cursor_x = 0, cursor_y = 0;
+
+void init_terminal(void) {
+  // Initialize serial port 1.
+  outb(port1 + 1, 0x00); // Disable all interrupts.
+  outb(port1 + 3, 0x80); // Set divisor latch bit on line control.
+  const uint32_t baud = 115200;
+  const uint32_t divisor = 115200 / baud;
+  outb(port1 + 0, divisor & 0xff);
+  outb(port1 + 1, (divisor >> 8) & 0xff);
+  outb(port1 + 3, 0x03); // 8 bits, one stop bit, no parity.
+  outb(port1 + 2, 0xc7); // Enable FIFO, clear them, with 14-byte threshold.
+  // Set data terminal ready and request to send bits on modem control
+  // register.
+  outb(port1 + 4, 0x03);
+}
 
 void terminal_clear(void) {
   for(size_t i = 0; i < 80 * 25 * 2; i += 2) {
@@ -22,6 +38,11 @@ void terminal_clear(void) {
 void terminal_putchar(const char c) {
   // Quit if printing outside the screen. Eventually we will support scrolling.
   if(cursor_y > 25) return;
+
+  // Wait until transmitter holding register is empty.
+  while(!(inb(port1 + 5) & 0x20)) { }
+  // Write character to serial port 1.
+  outb(port1, c);
 
   if(c == '\n') {
     cursor_x = 0;

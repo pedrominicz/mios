@@ -2,10 +2,12 @@ You may need a cross-compiler for this to work. Edit `TOOLPREFIX` in `run` if ne
 
 ### useful resources
 
-http://www.jamesmolloy.co.uk/tutorial_html/5.-IRQs%20and%20the%20PIT.html
+https://wiki.osdev.org/Serial_Ports#Port_Addresses
 
-https://wiki.osdev.org/PIC#Initialisation
+https://gitlab.com/ReturnInfinity/Pure64/blob/master/src/pure64.asm#L111
 
-https://wiki.osdev.org/Interrupts#Standard_ISA_IRQs
+https://www.lammertbies.nl/comm/info/serial-uart.html#MCR
 
-https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-3a-part-1-manual.pdf (table 6-1)
+https://gitlab.com/ReturnInfinity/BareMetal/blob/master/src/syscalls/io.asm
+
+https://gitlab.com/ReturnInfinity/BareMetal-OS/blob/master/run.sh

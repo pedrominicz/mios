@@ -93,13 +93,6 @@ void init_interrupt(void) {
 }
 
 void interrupt_handle(const Interrupt* const interrupt) {
-  // The first interrupt will be a divide by zero on `init_mios`. Just rewrite
-  // the `div ebx` instruction with NOPs.
-  static bool first_time = true;
-  if(first_time) {
-    *(uint16_t*)interrupt->eip = 0x9090;
-    first_time = false;
-  } else {
-    terminal_putchar('.');
-  }
+  (void)interrupt;
+  terminal_putchar('.');
 }

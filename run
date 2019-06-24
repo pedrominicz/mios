@@ -5,7 +5,9 @@
 #rm boot.bin
 #exit
 
-qemu_cmd=(qemu-system-i386 -drive file=mios.img,index=0,media=disk,format=raw)
+qemu_cmd=(qemu-system-i386 -drive file=mios.img,index=0,media=disk,format=raw
+  # Redirect the virtual serial port to stdio.
+  -serial stdio)
 
 make clean
 make all TOOLPREFIX='i386-elf-' || exit
