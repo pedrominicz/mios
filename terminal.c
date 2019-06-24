@@ -26,14 +26,12 @@ void terminal_putchar(const char c) {
   if(c == '\n') {
     cursor_x = 0;
     cursor_y += 1;
-    return;
-  }
-
-  terminal[2 * (cursor_y * 80 + cursor_x)] = c;
-
-  if(++cursor_x > 80) {
-    cursor_x = 0;
-    cursor_y += 1;
+  } else {
+    terminal[2 * (cursor_y * 80 + cursor_x)] = c;
+    if(++cursor_x > 80) {
+      cursor_x = 0;
+      cursor_y += 1;
+    }
   }
 
   const uint16_t cursor_position = cursor_y * 80 + cursor_x;

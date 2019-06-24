@@ -16,6 +16,6 @@ else
   screen -d -m "${qemu_cmd[@]}" -s -S
   sleep 1 # Give time for QEMU to start.
   # `e dbg.bpinmaps=false` allows placing breakpoints outside mapped memory.
-  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x80000; dc'
+  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x80000; dc; aaa'
 fi
 make clean

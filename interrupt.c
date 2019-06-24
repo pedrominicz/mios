@@ -1,6 +1,8 @@
 #include "interrupt.h"
 #include "terminal.h"
+#include "x86.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -40,6 +42,26 @@ typedef struct Interrupt {
 extern uintptr_t interrupts[256]; // Defined in "interrupt-stubs.asm".
 static uint64_t idt[256];
 
+// Initialize programmable interrupt controller (PIC).
+static inline void init_pic(void) {
+  // Restart PICs.
+  outb(0x20, 0x11); // Master PIC command port.
+  outb(0xa0, 0x11); // Slave PIC command port.
+  // Configure interrupt vector offset.
+  outb(0x21, 0x20); // Master PIC data port.
+  outb(0xa1, 0x28); // Slave PIC data port.
+  // Connect both PICs.
+  outb(0x21, 0x04); // Tell master slave is at interrupt request line 2.
+  outb(0xa1, 0x02); // Tell slave its cascade identity.
+  // XXX
+  outb(0x21, 0x01);
+  outb(0xa1, 0x01);
+  // Set interrupt masks. Ignore everything except the programmable interval
+  // timer (PIT).
+  outb(0x21, 0b11111110);
+  outb(0xa1, 0b11111111);
+}
+
 static inline uint64_t make_interrupt_gate(const uintptr_t interrupt) {
   const uint64_t interrupt_low = interrupt;
   const uint64_t interrupt_high = interrupt >> 16;
@@ -66,10 +88,18 @@ static inline void init_idt(void) {
 }
 
 void init_interrupt(void) {
+  init_pic();
   init_idt();
 }
 
 void interrupt_handle(const Interrupt* const interrupt) {
-  (void)interrupt;
-  terminal_print("interrupt\n");
+  // The first interrupt will be a divide by zero on `init_mios`. Just rewrite
+  // the `div ebx` instruction with NOPs.
+  static bool first_time = true;
+  if(first_time) {
+    *(uint16_t*)interrupt->eip = 0x9090;
+    first_time = false;
+  } else {
+    terminal_putchar('.');
+  }
 }
