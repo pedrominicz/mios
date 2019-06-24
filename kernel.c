@@ -12,14 +12,10 @@ static inline void hang(void) {
 }
 
 void mios_init(void) {
-  init_idt();
+  init_interrupt();
 
   terminal_clear();
-  asm volatile (
-      "mov eax, 0x73706172;"
-      "mov ebx, 0x74206576;"
-      "mov ecx, 0x6f6c2069;"
-      "int 0x03" ::: "eax", "ebx", "ecx");
+  asm volatile ("int 0x03");
   terminal_print("Hello interrupt world!\n");
 
   hang();

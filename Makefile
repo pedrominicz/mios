@@ -1,9 +1,8 @@
 #AS = $(TOOLPREFIX)as
 CC = $(TOOLPREFIX)gcc
 LD = $(TOOLPREFIX)ld
-CFLAGS = -m32 -masm=intel -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib -O3 -lgcc -Wall -Wextra -save-temps
-# -s, --strip-all: Omit all symbol information from the output file.
-LDFLAGS = -m elf_i386 -s
+CFLAGS = -m32 -masm=intel -g -O3 -lgcc -Wall -Wextra -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib
+LDFLAGS = -m elf_i386
 
 SRC = $(wildcard *.c)
 OBJ = entry.o interrupt-stubs.o $(SRC:.c=.o)
