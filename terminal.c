@@ -21,6 +21,8 @@ void init_terminal(void) {
   // Set data terminal ready and request to send bits on modem control
   // register.
   outb(port1 + 4, 0x03);
+
+  terminal_clear();
 }
 
 void terminal_clear(void) {
@@ -39,9 +41,11 @@ void terminal_clear(void) {
 void terminal_print_hex(uintmax_t n) {
   static const char hex_digit[16] = "0123456789abcdef";
   char s[sizeof(uintmax_t) + 1] = {0};
-  char* ptr = s + sizeof(uintmax_t);
-  for(; n; n >>= 4) *--ptr = hex_digit[n & 0xf];
-  terminal_print(ptr);
+  size_t i = sizeof(uintmax_t);
+  for(; n; n >>= 4) {
+    s[--i] = hex_digit[n & 0xf];
+  }
+  terminal_print(s + i);
 }
 
 void terminal_putchar(const char c) {

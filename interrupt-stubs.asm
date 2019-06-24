@@ -1,7 +1,7 @@
 bits 32
 
 section .text
-extern interrupt_handle
+extern interrupt_handler
 
 %macro interrupt_header 0
         push ds
@@ -31,7 +31,7 @@ extern interrupt_handle
 
 interrupt_common:
         interrupt_header
-        call interrupt_handle
+        call interrupt_handler
         interrupt_footer
         iret
 
@@ -39,7 +39,7 @@ irq_master_interrupt_common:
         interrupt_header
         mov ax, 0x20
         out 0x20, ax            ; Send an end of interrupt to master PIC.
-        call interrupt_handle
+        call interrupt_handler
         interrupt_footer
         iret
 
@@ -48,7 +48,7 @@ irq_slave_interrupt_common:
         mov ax, 0x20
         out 0x20, ax            ; Send an end of interrupt to master PIC.
         out 0xa0, ax            ; Send an end of interrupt to slave PIC.
-        call interrupt_handle
+        call interrupt_handler
         interrupt_footer
         iret
 

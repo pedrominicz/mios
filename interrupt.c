@@ -6,41 +6,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-typedef struct Interrupt {
-  // `pusha`
-  uint32_t edi;
-  uint32_t esi;
-  uint32_t ebp;
-  uint32_t esp;
-  uint32_t ebx;
-  uint32_t edx;
-  uint32_t ecx;
-  uint32_t eax;
-  // `push gs`
-  uint16_t gs;
-  uint16_t gs_padding;
-  // `push fs`
-  uint16_t fs;
-  uint16_t fs_padding;
-  // `push es`
-  uint16_t es;
-  uint16_t es_padding;
-  // `push ds`
-  uint16_t ds;
-  uint16_t ds_padding;
-  // `push dword %1`
-  uint32_t number;
-  // `push dword 0` or pushed by the CPU.
-  uint32_t error_code;
-  // Pushed by the CPU.
-  uint32_t eip;
-  uint16_t cs;
-  uint16_t cs_padding;
-  uint16_t eflags;
-} Interrupt;
-
 extern uintptr_t interrupts[256]; // Defined in "interrupt-stubs.asm".
 static uint64_t idt[256];
+static InterruptHandler handler[256];
 
 // Initialize programmable interrupt controller (PIC).
 static inline void init_pic(void) {
@@ -58,8 +26,8 @@ static inline void init_pic(void) {
   outb(0xa1, 0x01);
   // Set interrupt masks. Ignore everything except the programmable interval
   // timer (PIT).
-  outb(0x21, 0b11111110);
-  outb(0xa1, 0b11111111);
+  outb(0x21, 0xfe);
+  outb(0xa1, 0xff);
 }
 
 static inline uint64_t make_interrupt_gate(const uintptr_t interrupt) {
@@ -71,7 +39,7 @@ static inline uint64_t make_interrupt_gate(const uintptr_t interrupt) {
   idt_entry |= interrupt_high << 48;
   idt_entry |= 0x0008 << 16; // Kernel code selector.
   // Interrupt type and attributes.
-  idt_entry |= (uint64_t)0b10001110 << 40;
+  idt_entry |= (uint64_t)0x8e << 40;
   return idt_entry;
 }
 
@@ -87,12 +55,26 @@ static inline void init_idt(void) {
   asm volatile ("lidt [%0]" :: "r"(&idt_descriptor));
 }
 
+void default_interrupt_handler(const InterruptFrame* const frame) {
+  terminal_print("Unhandled interrupt (0x");
+  terminal_print_hex(frame->interrupt_number);
+  terminal_print(")! Hanging...\n");
+  hang();
+}
+
 void init_interrupt(void) {
   init_pic();
   init_idt();
+
+  for(size_t i = 0; i < 256; ++i) {
+    handler[i] = default_interrupt_handler;
+  }
 }
 
-void interrupt_handle(const Interrupt* const interrupt) {
-  (void)interrupt;
-  terminal_putchar('.');
+void register_interrupt_handler(uint8_t interrupt_number, InterruptHandler function) {
+  handler[interrupt_number] = function;
+}
+
+void interrupt_handler(const InterruptFrame* const frame) {
+  handler[frame->interrupt_number](frame);
 }
