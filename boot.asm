@@ -30,7 +30,7 @@ start:
         out 0x60, al            ; Enable A20.
 
         lgdt [gdt_descriptor]   ; Load the Global Descriptor Table (GDT).
-        mov eax, cr0            ; Set Protection Enable bit in `cr0`
+        mov eax, cr0            ; Set Protection Enable bit in `cr0`.
         or al, 1
         mov cr0, eax
 
@@ -143,7 +143,6 @@ read_segment:
 
         mov edi, [esi + 0xc]    ; Segment's physical address.
         push edi
-        and edi, 0xfffffe00     ; Round down to sector boundary.
 
         mov ecx, [esi + 0x10]   ; Segment's size in file (can be 0).
         jecxz .clear

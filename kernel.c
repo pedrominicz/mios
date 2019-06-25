@@ -21,6 +21,10 @@ void mios_init(void) {
   init_terminal();
 
   terminal_print("Hello many layers of indirection world!\n");
+  uintmax_t all_digits = 0x01234567;
+  all_digits <<= 32;
+  all_digits |= 0x89abcdef;
+  terminal_print_hex(all_digits);
 
   // Start the programmable interval timer (PIT).
   const uint32_t frequency = 50;
