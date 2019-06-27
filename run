@@ -1,4 +1,5 @@
 #!/bin/sh
+exit
 #debug=true
 #nasm -f bin boot.asm -o boot.bin
 #ndisasm -b 32 boot.bin | head

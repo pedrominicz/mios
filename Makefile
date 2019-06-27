@@ -1,29 +1,26 @@
-#AS = $(TOOLPREFIX)as
 CC = $(TOOLPREFIX)gcc
 LD = $(TOOLPREFIX)ld
-CFLAGS = -m32 -masm=intel -g -O3 -lgcc -Wall -Wextra -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib
+CFLAGS = -m32 -g -O3 -lgcc -Wall -Wextra -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib
 LDFLAGS = -m elf_i386
 
-SRC = $(wildcard *.c)
-OBJ = entry.o interrupt-stubs.o $(SRC:.c=.o)
+SRC = kernel.c terminal.c #$(wildcard *.c)
+OBJ = head.o $(SRC:.c=.o)
 
-all: mios.img
+all: mios.iso
 
-mios.img: boot.bin kernel.bin
-	dd if=/dev/zero of=$@ count=10000 2>/dev/null
-	dd if=boot.bin of=$@ conv=notrunc 2>/dev/null
-	dd if=kernel.bin of=$@ seek=1 conv=notrunc 2>/dev/null
+mios.iso: mios.bin grub.cfg
+	mkdir -p iso/boot/grub
+	cp mios.bin iso/boot/mios.bin
+	cp grub.cfg iso/boot/grub/grub.cfg
+	grub-mkrescue -o mios.iso iso
 
-boot.bin: boot.asm
-	nasm -f bin $< -o $@
+mios.bin: kernel.ld $(OBJ)
+	$(LD) $(LDFLAGS) -T kernel.ld -o mios.bin $(OBJ)
 
-kernel.bin: kernel.ld $(OBJ)
-	$(LD) $(LDFLAGS) -T $< -o $@ $(OBJ)
-
-%.o: %.asm
-	nasm -f elf $< -o $@
+%.o: %.S
+	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f mios.img $(wildcard *.bin) $(OBJ)
+	rm -rf mios.iso iso $(wildcard *.bin) $(OBJ)
 
-.PHONY: all clean debug qemu
+.PHONY: all clean

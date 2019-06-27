@@ -2,14 +2,12 @@ You may need a cross-compiler for this to work. Edit `TOOLPREFIX` in `run` if ne
 
 ### useful resources
 
-https://git.musl-libc.org/cgit/musl/tree/src/stdio/vfprintf.c#n153
+https://wiki.minix3.org/doku.php?id=developersguide:earlyboot
 
-https://wiki.osdev.org/Serial_Ports#Port_Addresses
+https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/arch/i386/head.S
 
-https://gitlab.com/ReturnInfinity/Pure64/blob/master/src/pure64.asm#L111
+https://github.com/seL4/seL4/blob/master/src/arch/x86/32/head.S
 
-https://www.lammertbies.nl/comm/info/serial-uart.html#MCR
+https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/arch/i386/kernel.lds
 
-https://gitlab.com/ReturnInfinity/BareMetal/blob/master/src/syscalls/io.asm
-
-https://gitlab.com/ReturnInfinity/BareMetal-OS/blob/master/run.sh
+https://wiki.osdev.org/Bare_Bones#Booting_the_Operating_System

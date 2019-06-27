@@ -40,7 +40,7 @@ void terminal_clear(void) {
 
 void terminal_print_hex(uintmax_t n) {
   static const char hex_digit[16] = "0123456789abcdef";
-  char s[sizeof(uintmax_t) * 2 + 1] = {0};
+  static char s[sizeof(uintmax_t) * 2 + 1] = {0};
   size_t i = sizeof(uintmax_t) * 2;
   for(; n; n /= 16) {
     s[--i] = hex_digit[n & 0xf];
@@ -62,7 +62,7 @@ void terminal_putchar(const char c) {
     cursor_y += 1;
   } else {
     terminal[2 * (cursor_y * 80 + cursor_x)] = c;
-    if(++cursor_x > 80) {
+    if(++cursor_x >= 80) {
       cursor_x = 0;
       cursor_y += 1;
     }

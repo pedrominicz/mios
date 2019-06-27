@@ -1,3 +1,4 @@
 *.bin
 *.o
-mios.img
+iso
+mios.iso
