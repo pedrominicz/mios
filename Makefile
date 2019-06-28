@@ -1,10 +1,11 @@
 CC = $(TOOLPREFIX)gcc
 LD = $(TOOLPREFIX)ld
-CFLAGS = -m32 -g -O3 -lgcc -Wall -Wextra -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib
+CFLAGS = -m32 -g -O3 -lgcc -pedantic -Wall -Wextra -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib
 LDFLAGS = -m elf_i386
 
-SRC = kernel.c terminal.c #$(wildcard *.c)
-OBJ = head.o $(SRC:.c=.o)
+SRC = $(wildcard *.c)
+ASM = $(wildcard *.S)
+OBJ = $(ASM:.S=.o) $(SRC:.c=.o)
 
 all: mios.iso
 
@@ -21,6 +22,6 @@ mios.bin: kernel.ld $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf mios.iso iso $(wildcard *.bin) $(OBJ)
+	rm -rf mios.iso iso mios.bin $(OBJ)
 
 .PHONY: all clean

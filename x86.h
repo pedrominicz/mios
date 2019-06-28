@@ -13,14 +13,4 @@ static inline void outb(uint16_t port, uint8_t data) {
   asm volatile ("out %0, %1" :: "a"(data), "d"(port));
 }
 
-static inline void sti(void) {
-  asm volatile ("sti");
-}
-
-static inline void hang(void) {
-  while(1) {
-    asm volatile ("cli\nhlt");
-  }
-}
-
 #endif // MIOS_X86_H

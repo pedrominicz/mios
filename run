@@ -1,12 +1,7 @@
 #!/bin/sh
-exit
-#debug=true
-#nasm -f bin boot.asm -o boot.bin
-#ndisasm -b 32 boot.bin | head
-#rm boot.bin
-#exit
+debug=true
 
-qemu_cmd=(qemu-system-i386 -drive file=mios.img,index=0,media=disk,format=raw
+qemu_cmd=(qemu-system-i386 -drive file=mios.iso,format=raw
   # Redirect the virtual serial port to stdio.
   -serial stdio)
 
@@ -19,6 +14,6 @@ else
   screen -d -m "${qemu_cmd[@]}" -s -S
   sleep 1 # Give time for QEMU to start.
   # `e dbg.bpinmaps=false` allows placing breakpoints outside mapped memory.
-  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x80000; dc; aaa'
+  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x400000; dc; aaa'
 fi
 make clean

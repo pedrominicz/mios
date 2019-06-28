@@ -1,29 +1,32 @@
+.code32
+
 #define MULTIBOOT_MAGIC 0x1badb002
 #define MULTIBOOT_FLAGS (0x00000001 | 0x00000002)
 
-.text
-.balign 8
+.section .multiboot
+.global _start
+_start:
+        jmp start
+
+.balign 16
 multiboot_header:
         .long MULTIBOOT_MAGIC
         .long MULTIBOOT_FLAGS
-        .long -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS) // Multiboot checksum
+        .long -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS) // Multiboot checksum.
 
-.global _start
-_start:
-        mov $stack_start, %esp
+start:
+        mov $stack, %esp
         push $0
         popf
 
-        push %ebx
-        push %eax
+        push %ebx // Multiboot information structure.
+        push %eax // Multiboot magic.
         call mios_init
 hang:
-        cli
         hlt
         jmp hang
 
 .data
 .balign 16
-stack:
         .space 4096
-stack_start:
+stack:

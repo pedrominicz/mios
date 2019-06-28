@@ -5,7 +5,7 @@ SECTIONS
 {
   . = 0x00400000;
 
-  .text : { *(.text) }
+  .text : { *(.multiboot) *(.text) }
   .data ALIGN(4096) : { *(.data .rodata*) }
   .bss ALIGN(4096) : { *(.bss) }
 }

@@ -49,13 +49,13 @@ void terminal_print_hex(uintmax_t n) {
 }
 
 void terminal_putchar(const char c) {
-  // Quit if printing outside the screen. Eventually we will support scrolling.
-  if(cursor_y > 25) return;
-
   // Wait until transmitter holding register is empty.
   while(!(inb(port1 + 5) & 0x20)) { }
   // Write character to serial port 1.
   outb(port1, c);
+
+  // Quit if printing outside the screen. Eventually we will support scrolling.
+  if(cursor_y > 25) return;
 
   if(c == '\n') {
     cursor_x = 0;
