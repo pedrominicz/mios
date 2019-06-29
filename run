@@ -1,5 +1,5 @@
 #!/bin/sh
-debug=true
+#debug=true
 
 qemu_cmd=(qemu-system-i386 -drive file=mios.iso,format=raw
   # Redirect the virtual serial port to stdio.

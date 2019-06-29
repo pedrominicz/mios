@@ -30,7 +30,7 @@ mios.iso: mios.bin grub.cfg
 	mkdir -p isodir/boot/grub
 	cp mios.bin isodir/boot/mios.bin
 	cp grub.cfg isodir/boot/grub/grub.cfg
-	grub-mkrescue -o mios.iso iso
+	grub-mkrescue -o mios.iso isodir
 
 mios.bin: kernel.ld $(OBJ)
 	$(LD) $(LDFLAGS) -T kernel.ld -o mios.bin $(OBJ)
