@@ -74,8 +74,8 @@ traps:                          // `traps`will be accessed from C as
 
 INTERRUPT(0x00)                 // Divide error (`div` and `idiv`).
 INTERRUPT(0x01)                 // Debug exception.
-INTERRUPT(0x02)                 // Non Maskable interrupt (NMI).
-INTERRUPT(0x03)                 // Breakpoint (`int 3`).
+INTERRUPT(0x02)                 // Non maskable interrupt (NMI).
+INTERRUPT(0x03)                 // Breakpoint (`int $3`).
 INTERRUPT(0x04)                 // Overflow (`into`).
 INTERRUPT(0x05)                 // Bound range exception (`bound`).
 INTERRUPT(0x06)                 // Invalid opcode (`ud2`).
@@ -127,4 +127,4 @@ INTERRUPT_SLAVE(0x2e)           // Primary ATA hard disk.
 INTERRUPT_SLAVE(0x2f)           // Secondary ATA hard disk.
 
 .data
-        .space 1024 - (. - traps)
+        .space 1024 - (. - traps) // Pad `uintptr_t traps[256]`.

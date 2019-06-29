@@ -40,7 +40,13 @@ void terminal_clear(void) {
 
 void terminal_print_hex(uintmax_t n) {
   static const char hex_digit[16] = "0123456789abcdef";
-  static char s[sizeof(uintmax_t) * 2 + 1] = {0};
+  char s[sizeof(uintmax_t) * 2 + 1];
+
+  if(n == 0) {
+    terminal_putchar('0');
+    return;
+  }
+
   size_t i = sizeof(uintmax_t) * 2;
   for(; n; n /= 16) {
     s[--i] = hex_digit[n & 0xf];

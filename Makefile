@@ -1,18 +1,35 @@
+TOOLPREFIX = i386-elf-
 CC = $(TOOLPREFIX)gcc
 LD = $(TOOLPREFIX)ld
-CFLAGS = -m32 -g -O3 -lgcc -pedantic -Wall -Wextra -fno-pic -fno-pie -fno-stack-protector -ffreestanding -nostdlib
+
+CFLAGS = -pedantic -Wall -Wextra -O3
+# Generate code for 32-bit ABI.
+CFLAGS += -m32
+# Produce debugging information in stabs format (if that is supported).
+CFLAGS += -gstabs
+# Link with libgcc.
+CFLAGS += -lgcc
+# No position-independent code
+CFLAGS += -fno-pic -fno-pie
+# No extra code to check for buffer overflows, such as stack smashing attacks.
+CFLAGS += -fno-stack-protector
+# Assert that compilation takes place in a freestanding environment.
+CFLAGS += -ffreestanding
+# Do not use the standard system startup files or libraries when linking.
+CFLAGS += -nostdlib
+
 LDFLAGS = -m elf_i386
 
-SRC = $(wildcard *.c)
 ASM = $(wildcard *.S)
+SRC = $(wildcard *.c)
 OBJ = $(ASM:.S=.o) $(SRC:.c=.o)
 
 all: mios.iso
 
 mios.iso: mios.bin grub.cfg
-	mkdir -p iso/boot/grub
-	cp mios.bin iso/boot/mios.bin
-	cp grub.cfg iso/boot/grub/grub.cfg
+	mkdir -p isodir/boot/grub
+	cp mios.bin isodir/boot/mios.bin
+	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o mios.iso iso
 
 mios.bin: kernel.ld $(OBJ)
@@ -22,6 +39,7 @@ mios.bin: kernel.ld $(OBJ)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -rf mios.iso iso mios.bin $(OBJ)
+	rm -rf isodir
+	rm -f mios.iso mios.bin $(OBJ)
 
 .PHONY: all clean

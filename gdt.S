@@ -5,6 +5,8 @@
 .text
 .global init_gdt
 init_gdt:
+        pushf
+        cli
         lgdt (gdt_descriptor)
         mov $KERNEL_DATA_SELECTOR, %ax
         mov %ax, %ds
@@ -14,6 +16,7 @@ init_gdt:
         mov %ax, %ss
         jmp $KERNEL_CODE_SELECTOR, $1f
 1:
+        popf
         ret
 
 .data

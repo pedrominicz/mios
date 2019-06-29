@@ -6,7 +6,7 @@ qemu_cmd=(qemu-system-i386 -drive file=mios.iso,format=raw
   -serial stdio)
 
 make clean
-make all TOOLPREFIX='i386-elf-' || exit
+make all || exit
 if [ -z $debug ]; then
   "${qemu_cmd[@]}"
 else
@@ -14,6 +14,6 @@ else
   screen -d -m "${qemu_cmd[@]}" -s -S
   sleep 1 # Give time for QEMU to start.
   # `e dbg.bpinmaps=false` allows placing breakpoints outside mapped memory.
-  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x400000; dc; aaa'
+  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x80000; dc; aaa'
 fi
 make clean

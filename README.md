@@ -1,4 +1,4 @@
-You may need a cross-compiler for this to work. Edit `TOOLPREFIX` in `run` if necessary then `chmod +x run` and `./run` to build and run.
+You need a cross-compiler for this to work. `./run` to build and run.
 
 ### useful resources
 

@@ -3,7 +3,7 @@ ENTRY(_start)
 
 SECTIONS
 {
-  . = 0x00400000;
+  . = 0x80000;
 
   .text : { *(.multiboot) *(.text) }
   .data ALIGN(4096) : { *(.data .rodata*) }
