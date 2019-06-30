@@ -10,6 +10,7 @@ void trap(void) {
 }
 
 void mios_init(uint32_t magic, uint32_t ebx) {
+  (void)magic;
   (void)ebx;
 
   init_gdt();
@@ -17,10 +18,6 @@ void mios_init(uint32_t magic, uint32_t ebx) {
 
   init_terminal();
   terminal_print("Hello trap world!\n");
-
-  if(magic != 0x2badb002) {
-    terminal_print("No magic.\n");
-  }
 
   asm volatile ("int $3");
 

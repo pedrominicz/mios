@@ -8,7 +8,7 @@ extern uintptr_t traps[256]; // Defined in "traps.S".
 static uint64_t idt[256];
 
 static inline uint64_t make_interrupt_gate(const uintptr_t interrupt) {
-  const uint64_t interrupt_low = interrupt;
+  const uint16_t interrupt_low = interrupt;
   const uint64_t interrupt_high = interrupt >> 16;
 
   uint64_t idt_entry = 0;

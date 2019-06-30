@@ -2,6 +2,8 @@ You need a cross-compiler for this to work. `./run` to build and run.
 
 ### useful resources
 
+https://forum.osdev.org/viewtopic.php?f=1&t=33750&start=0
+
 https://wiki.minix3.org/doku.php?id=developersguide:earlyboot
 
 https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/arch/i386/head.S
