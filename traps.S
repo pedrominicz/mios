@@ -67,7 +67,7 @@ interrupt_##n:                  \
         .long interrupt_##n;
 
 .data
-.balign 16
+.balign 4
 .global traps
 traps:                          // `traps`will be accessed from C as
                                 // `uintptr_t traps[256]`.

@@ -4,12 +4,8 @@ You need a cross-compiler for this to work. `./run` to build and run.
 
 https://forum.osdev.org/viewtopic.php?f=1&t=33750&start=0
 
-https://wiki.minix3.org/doku.php?id=developersguide:earlyboot
+http://www.jamesmolloy.co.uk/tutorial_html/10.-User%20Mode.html
 
-https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/arch/i386/head.S
+https://wiki.osdev.org/Global_Descriptor_Table#Structure
 
-https://github.com/seL4/seL4/blob/master/src/arch/x86/32/head.S
-
-https://github.com/Stichting-MINIX-Research-Foundation/minix/blob/master/minix/kernel/arch/i386/kernel.lds
-
-https://wiki.osdev.org/Bare_Bones#Booting_the_Operating_System
+https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf (figure 7-2)

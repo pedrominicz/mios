@@ -7,6 +7,7 @@ void init_terminal(void);
 
 void terminal_clear(void);
 void terminal_print_hex(uintmax_t n);
+void terminal_print_hex_pad(uintmax_t n);
 void terminal_putchar(const char c);
 
 static inline void terminal_print(const char* s) {

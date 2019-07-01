@@ -27,6 +27,5 @@ hang:
         jmp hang
 
 .data
-.balign 16
-        .space 4096
+.space 4096
 stack:

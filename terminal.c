@@ -54,6 +54,17 @@ void terminal_print_hex(uintmax_t n) {
   terminal_print(s + i);
 }
 
+void terminal_print_hex_pad(uintmax_t n) {
+  static const char hex_digit[16] = "0123456789abcdef";
+  char s[sizeof(uintmax_t) * 2 + 1] = "0000000000000000";
+
+  size_t i = sizeof(uintmax_t) * 2;
+  for(; n; n /= 16) {
+    s[--i] = hex_digit[n & 0xf];
+  }
+  terminal_print(s);
+}
+
 void terminal_putchar(const char c) {
   // Wait until transmitter holding register is empty.
   while(!(inb(port1 + 5) & 0x20)) { }

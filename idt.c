@@ -9,14 +9,14 @@ static uint64_t idt[256];
 
 static inline uint64_t make_interrupt_gate(const uintptr_t interrupt) {
   const uint16_t interrupt_low = interrupt;
-  const uint64_t interrupt_high = interrupt >> 16;
+  const uint16_t interrupt_high = interrupt >> 16;
 
   uint64_t idt_entry = 0;
   idt_entry |= interrupt_low;
-  idt_entry |= interrupt_high << 48;
   idt_entry |= KERNEL_CODE_SELECTOR << 16;
   // Interrupt type and attributes.
   idt_entry |= (uint64_t)0x8e << 40;
+  idt_entry |= (uint64_t)interrupt_high << 48;
   return idt_entry;
 }
 
