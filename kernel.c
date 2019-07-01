@@ -1,14 +1,22 @@
 #include "gdt.h"
-#include "idt.h"
+#include "interrupt.h"
 #include "terminal.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-extern uint64_t gdt[6]; // Defined in "gdt.S".
+extern void switch_user_mode(void); // Defined in "gdt.S".
 
-void trap(void) {
-  terminal_print("Trap.\n");
+void interrupt_handler(InterruptFrame* frame) {
+  terminal_print("Interrupt 0x");
+  terminal_print_hex(frame->interrupt_number);
+  terminal_print(".\n");
+}
+
+void syscall_handler(InterruptFrame* frame) {
+  terminal_print("Syscall 0x");
+  terminal_print_hex(frame->eax);
+  terminal_print(".\n");
 }
 
 void mios_init(uint32_t magic, uint32_t ebx) {
@@ -17,25 +25,19 @@ void mios_init(uint32_t magic, uint32_t ebx) {
 
   init_gdt();
   init_idt();
+  init_pic();
 
-  init_terminal();
-  terminal_print("Hello weird C preprocessor macros world!\n");
-  terminal_print_hex_pad(gdt[0]);
-  terminal_putchar('\n');
-  terminal_print_hex_pad(gdt[1]);
-  terminal_putchar('\n');
-  terminal_print_hex_pad(gdt[2]);
-  terminal_putchar('\n');
-  terminal_print_hex_pad(gdt[3]);
-  terminal_putchar('\n');
-  terminal_print_hex_pad(gdt[4]);
-  terminal_putchar('\n');
-  terminal_print_hex_pad(gdt[5]);
-  terminal_putchar('\n');
+  init_terminal("mios\n");
 
   asm volatile ("int $3");
 
-  while(1) {
-    asm volatile ("hlt");
-  }
+  switch_user_mode();
+
+  asm volatile (
+      "mov $0x1234, %%eax;"
+      "int $0x80;"
+      "mov $0x4321, %%eax;"
+      "int $0x80" ::: "eax");
+
+  while(1) { }
 }

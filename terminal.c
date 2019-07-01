@@ -4,11 +4,12 @@
 #include <stddef.h>
 #include <stdint.h>
 
+static const char hex_digits[16] = "0123456789abcdef";
 static const uint16_t port1 = 0x03f8;
 static uint8_t* const terminal = (uint8_t*)0xb8000;
 static volatile size_t cursor_x = 0, cursor_y = 0;
 
-void init_terminal(void) {
+void init_terminal(const char* s) {
   // Initialize serial port 1.
   outb(port1 + 1, 0x00); // Disable all interrupts.
   outb(port1 + 3, 0x80); // Set divisor latch bit on line control.
@@ -23,6 +24,7 @@ void init_terminal(void) {
   outb(port1 + 4, 0x03);
 
   terminal_clear();
+  terminal_print(s);
 }
 
 void terminal_clear(void) {
@@ -39,7 +41,6 @@ void terminal_clear(void) {
 }
 
 void terminal_print_hex(uintmax_t n) {
-  static const char hex_digit[16] = "0123456789abcdef";
   char s[sizeof(uintmax_t) * 2 + 1];
 
   if(n == 0) {
@@ -49,18 +50,23 @@ void terminal_print_hex(uintmax_t n) {
 
   size_t i = sizeof(uintmax_t) * 2;
   for(; n; n /= 16) {
-    s[--i] = hex_digit[n & 0xf];
+    s[--i] = hex_digits[n & 0xf];
   }
   terminal_print(s + i);
 }
 
-void terminal_print_hex_pad(uintmax_t n) {
-  static const char hex_digit[16] = "0123456789abcdef";
-  char s[sizeof(uintmax_t) * 2 + 1] = "0000000000000000";
+void terminal_print_hex32(uint32_t n) {
+  char s[sizeof(uint32_t) * 2 + 1] = "00000000";
+  for(size_t i = sizeof(uint32_t) * 2; n; n /= 16) {
+    s[--i] = hex_digits[n & 0xf];
+  }
+  terminal_print(s);
+}
 
-  size_t i = sizeof(uintmax_t) * 2;
-  for(; n; n /= 16) {
-    s[--i] = hex_digit[n & 0xf];
+void terminal_print_hex64(uint64_t n) {
+  char s[sizeof(uint64_t) * 2 + 1] = "0000000000000000";
+  for(size_t i = sizeof(uint64_t) * 2; n; n /= 16) {
+    s[--i] = hex_digits[n & 0xf];
   }
   terminal_print(s);
 }

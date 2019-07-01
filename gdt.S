@@ -16,6 +16,8 @@ init_gdt:
         mov %ax, %ss
         jmp $KERNEL_CODE_SELECTOR, $1f
 1:
+        mov $104, %ax
+        or %ax, gdt_end - 8     // Task state segment size in bytes.
         mov $tss, %eax
         and %eax, 0x00ffffff;
         or %eax, gdt_end - 6    // Task state segment base address (bits 0-23).
@@ -23,11 +25,32 @@ init_gdt:
         shr $24, %eax
         or %al, gdt_end - 1     // Task state segment base address
                                 // (bits 24-31).
-        mov $104, %ax
-        or %ax, gdt_end - 8     // Task state segment size in bytes.
         mov $0x2b, %ax
         ltr %ax                 // Load task register
         popf
+        ret
+
+.global switch_user_mode
+switch_user_mode:
+        pop %edx
+        mov %esp, tss + 4
+        cli
+        mov $0x23, %ax
+        mov %ax, %ds
+        mov %ax, %es
+        mov %ax, %fs
+        mov %ax, %gs
+        push $0x23
+        push user_mode_stack
+        pushf
+        pop %eax
+        or $0x200, %eax
+        push %eax
+        push $0x1b
+        push $1f
+        iret
+1:
+        push %edx
         ret
 
 .data
@@ -59,3 +82,6 @@ tss:
 .long KERNEL_DATA_SELECTOR | 3  // Extra segment #2 (`fs`).
 .long KERNEL_DATA_SELECTOR | 3  // Extra segment #3 (`gs`).
 .space 8
+
+.space 4096
+user_mode_stack:
