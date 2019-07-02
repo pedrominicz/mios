@@ -16,10 +16,8 @@ init_gdt:
         mov %ax, %ss
         jmp $KERNEL_CODE_SELECTOR, $1f
 1:
-        mov $104, %ax
-        or %ax, gdt_end - 8     // Task state segment size in bytes.
         mov $tss, %eax
-        and %eax, 0x00ffffff;
+        and $0x00ffffff, %eax
         or %eax, gdt_end - 6    // Task state segment base address (bits 0-23).
         mov $tss, %eax
         shr $24, %eax
@@ -33,7 +31,7 @@ init_gdt:
 .global switch_user_mode
 switch_user_mode:
         pop %edx
-        mov %esp, tss + 4
+        mov %esp, tss + 4       // Stack pointer for ring 0.
         cli
         mov $0x23, %ax
         mov %ax, %ds
@@ -41,7 +39,7 @@ switch_user_mode:
         mov %ax, %fs
         mov %ax, %gs
         push $0x23
-        push user_mode_stack
+        push $user_mode_stack
         pushf
         pop %eax
         or $0x200, %eax
@@ -54,34 +52,33 @@ switch_user_mode:
         ret
 
 .data
-.global gdt
 gdt:
-.quad 0x0000000000000000        // Null segment.
-.quad 0x00cf9a000000ffff        // Kernel code segment.
-.quad 0x00cf92000000ffff        // Kernel cata segment.
-.quad 0x00cffa000000ffff        // User mode code segment.
-.quad 0x00cff2000000ffff        // User mode data segment.
-.quad 0x0000e90000000000        // Task state segment.
+        .quad 0x0000000000000000 // Null segment.
+        .quad 0x00cf9a000000ffff // Kernel code segment.
+        .quad 0x00cf92000000ffff // Kernel cata segment.
+        .quad 0x00cffa000000ffff // User mode code segment.
+        .quad 0x00cff2000000ffff // User mode data segment.
+        .quad 0x0000e90000000068 // Task state segment.
 gdt_end:
 
 gdt_descriptor:
-.word gdt_end - gdt - 1
-.long gdt
+        .word gdt_end - gdt - 1
+        .long gdt
 
 tss:
-.space 4
-.long 0                         // Stack pointer.
-.long KERNEL_DATA_SELECTOR      // Stack segment.
-.space 60
-// Or-ing segment registers to make them accessible from privilege level-3,
-// i.e. user mode.
-.long KERNEL_DATA_SELECTOR | 3  // Extra segment.
-.long KERNEL_CODE_SELECTOR | 3  // Code segment.
-.long KERNEL_DATA_SELECTOR | 3  // Stack segment.
-.long KERNEL_DATA_SELECTOR | 3  // Data segment.
-.long KERNEL_DATA_SELECTOR | 3  // Extra segment #2 (`fs`).
-.long KERNEL_DATA_SELECTOR | 3  // Extra segment #3 (`gs`).
-.space 8
+        .space 8
+        .long KERNEL_DATA_SELECTOR // Stack segment.
+        .space 60
+        // Or-ing segment registers to make them accessible from privilege
+        // level-3, i.e. user mode.
+        .long KERNEL_DATA_SELECTOR | 3 // Extra segment.
+        .long KERNEL_CODE_SELECTOR | 3 // Code segment.
+        .long KERNEL_DATA_SELECTOR | 3 // Stack segment.
+        .long KERNEL_DATA_SELECTOR | 3 // Data segment.
+        .long KERNEL_DATA_SELECTOR | 3 // Extra segment #2 (`fs`).
+        .long KERNEL_DATA_SELECTOR | 3 // Extra segment #3 (`gs`).
+        .space 6
+        .word 0xffff
 
-.space 4096
+        .space 4096
 user_mode_stack:

@@ -1,6 +1,7 @@
 #include "gdt.h"
 #include "interrupt.h"
 #include "terminal.h"
+#include "x86.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -10,7 +11,10 @@ extern void switch_user_mode(void); // Defined in "gdt.S".
 void interrupt_handler(InterruptFrame* frame) {
   terminal_print("Interrupt 0x");
   terminal_print_hex(frame->interrupt_number);
+  terminal_print(". Error code 0x");
+  terminal_print_hex(frame->interrupt_error_code);
   terminal_print(".\n");
+  asm volatile ("hlt");
 }
 
 void syscall_handler(InterruptFrame* frame) {
@@ -28,8 +32,6 @@ void mios_init(uint32_t magic, uint32_t ebx) {
   init_pic();
 
   init_terminal("mios\n");
-
-  asm volatile ("int $3");
 
   switch_user_mode();
 

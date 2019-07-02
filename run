@@ -1,5 +1,4 @@
 #!/bin/sh
-#debug=true
 
 qemu_cmd=(qemu-system-i386 -drive file=mios.iso,format=raw
   # Redirect the virtual serial port to stdio.
@@ -7,13 +6,14 @@ qemu_cmd=(qemu-system-i386 -drive file=mios.iso,format=raw
 
 make clean
 make all || exit
-if [ -z $debug ]; then
+# Pass any argument and this script will run in debug mode
+if [ -z $1 ]; then
   "${qemu_cmd[@]}"
 else
   # Start QEMU in a detached screen session.
   screen -d -m "${qemu_cmd[@]}" -s -S
   sleep 1 # Give time for QEMU to start.
   # `e dbg.bpinmaps=false` allows placing breakpoints outside mapped memory.
-  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x400000; dc; aaa'
+  r2 -b 32 -d gdb://localhost:1234 -c 'e dbg.bpinmaps=false; db 0x100000; dc; aaa'
 fi
 make clean

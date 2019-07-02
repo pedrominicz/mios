@@ -2,10 +2,12 @@ You need a cross-compiler for this to work. `./run` to build and run.
 
 ### useful resources
 
-https://forum.osdev.org/viewtopic.php?f=1&t=33750&start=0
+https://github.com/seL4/seL4/blob/master/src/arch/x86/32/head.S
 
-http://www.jamesmolloy.co.uk/tutorial_html/10.-User%20Mode.html
+https://github.com/seL4/seL4/blob/master/src/arch/x86/32/kernel/vspace_32paging.c
 
-https://wiki.osdev.org/Global_Descriptor_Table#Structure
+https://en.wikipedia.org/wiki/Control_register#CR0
 
-https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf (figure 7-2)
+https://stackoverflow.com/questions/48498308/assemble-far-calls-or-far-jumps-j-instructions
+
+https://software.intel.com/sites/default/files/managed/7c/f1/253668-sdm-vol-3a.pdf (figure 4-4 and table 4-4)
