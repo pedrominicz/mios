@@ -70,6 +70,14 @@ void terminal_print_hex(uintmax_t n) {
   terminal_print(s + i);
 }
 
+void terminal_print_hex8(uint8_t n) {
+  char s[sizeof(uint8_t) * 2 + 1] = "00";
+  for(size_t i = sizeof(uint8_t) * 2; n; n /= 16) {
+    s[--i] = digits[n % 16];
+  }
+  terminal_print(s);
+}
+
 void terminal_print_hex16(uint16_t n) {
   char s[sizeof(uint16_t) * 2 + 1] = "0000";
   for(size_t i = sizeof(uint16_t) * 2; n; n /= 16) {
@@ -106,8 +114,6 @@ static void terminal_scroll(void) {
   for(size_t x = 0; x < 80; ++x) {
     terminal[2 * (24 * 80 + x)] = ' ';
   }
-
-  cursor_y = 24;
 }
 
 void terminal_putchar(const char c) {
@@ -116,7 +122,10 @@ void terminal_putchar(const char c) {
   // Write character to serial port 1.
   outb(port1, c);
 
-  if(cursor_y >= 25) terminal_scroll();
+  if(cursor_y >= 25) {
+    terminal_scroll();
+    cursor_y = 24;
+  }
 
   if(c == '\n') {
     cursor_x = 0;

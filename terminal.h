@@ -8,6 +8,7 @@ void init_terminal(const char* s);
 void terminal_clear(void);
 void terminal_print_decimal(uintmax_t n);
 void terminal_print_hex(uintmax_t n);
+void terminal_print_hex8(uint8_t n);
 void terminal_print_hex16(uint16_t n);
 void terminal_print_hex32(uint32_t n);
 void terminal_print_hex64(uint64_t n);

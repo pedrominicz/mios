@@ -15,10 +15,13 @@ void mios_init(uint32_t magic, uint32_t ebx) {
 
   init_terminal("mios\n");
 
-  terminal_print("Hello breakpoints world.\n");
+  terminal_print("Hello fancy interrupt error messages world.\n");
+
+  switch_user_mode();
+
+  *(char**)0 = "Paging fault.\n";
 
   while(1) {
-    breakpoint();
-    terminal_print("Forever...\n");
+    asm volatile ("hlt");
   }
 }

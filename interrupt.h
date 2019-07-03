@@ -25,7 +25,7 @@ typedef struct InterruptFrame {
   uint32_t eip;
   uint32_t cs;
   uint32_t eflags;
-  // Pushed by the CPU when crossing rings.
+  // Pushed by the CPU only when crossing rings.
   uint32_t esp;
   uint32_t ss;
 } InterruptFrame;
