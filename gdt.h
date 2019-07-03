@@ -7,6 +7,7 @@
 #ifndef __ASSEMBLER__
 
 void init_gdt(void);
+void switch_user_mode(void);
 
 #endif // __ASSEMBLER__
 

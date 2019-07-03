@@ -86,7 +86,7 @@ INTERRUPT(0x01, interrupt_handler)
 // Non maskable interrupt (NMI).
 INTERRUPT(0x02, interrupt_handler)
 // Breakpoint (`int $3`).
-INTERRUPT(0x03, interrupt_handler)
+INTERRUPT(0x03, breakpoint_handler)
 // Overflow (`into`).
 INTERRUPT(0x04, interrupt_handler)
 // Bound range exception (`bound`).
@@ -130,7 +130,7 @@ INTERRUPT(0x14, interrupt_handler)
 // Programmable interrupt timer (PIT).
 INTERRUPT_MASTER(0x20, interrupt_handler)
 // Keyboard interrupt.
-INTERRUPT_MASTER(0x21, interrupt_handler)
+INTERRUPT_MASTER(0x21, keyboard_handler)
 // Cascade (used internally by the programmable interrupt controllers, never
 // raised).
 INTERRUPT_MASTER(0x22, interrupt_handler)

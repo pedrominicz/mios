@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#define breakpoint() asm volatile ("int $3" :: "a"(__FILE__), "b"(__LINE__));
+
 typedef struct InterruptFrame {
   // Pushed by interrupt gate.
   uint32_t edi;

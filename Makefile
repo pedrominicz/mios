@@ -7,8 +7,6 @@ CFLAGS = -pedantic -Wall -Wextra -O3
 CFLAGS += -m32
 # Produce debugging information in stabs format (if that is supported).
 CFLAGS += -gstabs
-# Link with libgcc.
-CFLAGS += -lgcc
 # No position-independent code
 CFLAGS += -fno-pic -fno-pie
 # No extra code to check for buffer overflows, such as stack smashing attacks.
@@ -19,6 +17,8 @@ CFLAGS += -ffreestanding
 CFLAGS += -nostdlib
 
 LDFLAGS = -m elf_i386
+# All code compiled with `gcc` must be linked with `libgcc`.
+LIBGCC := $(shell $(CC) -print-libgcc-file-name)
 
 ASM = $(wildcard *.S)
 SRC = $(wildcard *.c)
@@ -33,7 +33,7 @@ mios.iso: mios.bin grub.cfg
 	grub-mkrescue -o mios.iso isodir
 
 mios.bin: kernel.ld $(OBJ)
-	$(LD) $(LDFLAGS) -T kernel.ld -o mios.bin $(OBJ)
+	$(LD) $(LDFLAGS) -T kernel.ld -o mios.bin $(OBJ) $(LIBGCC)
 
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@

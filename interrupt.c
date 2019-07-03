@@ -51,7 +51,7 @@ void init_pic(void) {
   // XXX
   outb(0x21, 0x01);
   outb(0xa1, 0x01);
-  // Set interrupt masks to ignore everything.
-  outb(0x21, 0xff);
+  // Set interrupt masks to ignore everything except keyboard interrupts.
+  outb(0x21, 0xfd);
   outb(0xa1, 0xff);
 }

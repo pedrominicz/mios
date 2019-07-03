@@ -43,11 +43,12 @@ start:
         push %edi               // Multiboot information structure.
         push %esi               // Multiboot magic.
 
-        push $hang
-        mov $mios_init, %eax
-        jmp *%eax               // Far jump to `mios_init` with `hang` as the
-                                // return value.
+        mov $1f, %eax
+        jmp *%eax
+1:
+        movl $0, page_directory // Invalidate first page directory entry.
 
+        call mios_init
 hang:
         hlt
         jmp hang

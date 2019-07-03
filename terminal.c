@@ -4,9 +4,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-static const char hex_digits[16] = "0123456789abcdef";
+static const char digits[16] = "0123456789abcdef";
 static const uint16_t port1 = 0x03f8;
-static uint8_t* const terminal = (uint8_t*)0xb8000;
+static uint8_t* const terminal = (uint8_t*)0xf00b8000;
 static volatile size_t cursor_x = 0, cursor_y = 0;
 
 void init_terminal(const char* s) {
@@ -40,8 +40,23 @@ void terminal_clear(void) {
   outb(0x03d5, 0);
 }
 
+void terminal_print_decimal(uintmax_t n) {
+  char s[21] = {0};
+
+  if(n == 0) {
+    terminal_putchar('0');
+    return;
+  }
+
+  size_t i = 20;
+  for(; n; n /= 10) {
+    s[--i] = digits[n % 10];
+  }
+  terminal_print(s + i);
+}
+
 void terminal_print_hex(uintmax_t n) {
-  char s[sizeof(uintmax_t) * 2 + 1];
+  char s[sizeof(uintmax_t) * 2 + 1] = {0};
 
   if(n == 0) {
     terminal_putchar('0');
@@ -50,15 +65,23 @@ void terminal_print_hex(uintmax_t n) {
 
   size_t i = sizeof(uintmax_t) * 2;
   for(; n; n /= 16) {
-    s[--i] = hex_digits[n & 0xf];
+    s[--i] = digits[n % 16];
   }
   terminal_print(s + i);
+}
+
+void terminal_print_hex16(uint16_t n) {
+  char s[sizeof(uint16_t) * 2 + 1] = "0000";
+  for(size_t i = sizeof(uint16_t) * 2; n; n /= 16) {
+    s[--i] = digits[n % 16];
+  }
+  terminal_print(s);
 }
 
 void terminal_print_hex32(uint32_t n) {
   char s[sizeof(uint32_t) * 2 + 1] = "00000000";
   for(size_t i = sizeof(uint32_t) * 2; n; n /= 16) {
-    s[--i] = hex_digits[n & 0xf];
+    s[--i] = digits[n % 16];
   }
   terminal_print(s);
 }
@@ -66,7 +89,7 @@ void terminal_print_hex32(uint32_t n) {
 void terminal_print_hex64(uint64_t n) {
   char s[sizeof(uint64_t) * 2 + 1] = "0000000000000000";
   for(size_t i = sizeof(uint64_t) * 2; n; n /= 16) {
-    s[--i] = hex_digits[n & 0xf];
+    s[--i] = digits[n % 16];
   }
   terminal_print(s);
 }
