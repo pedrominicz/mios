@@ -71,24 +71,43 @@ void terminal_print_hex64(uint64_t n) {
   terminal_print(s);
 }
 
+static void terminal_scroll(void) {
+  // Copy every character to the line above.
+  for(size_t y = 1; y < 25; ++y) {
+    for(size_t x = 0; x < 80; ++x) {
+      terminal[2 * ((y - 1) * 80 + x)] = terminal[2 * (y * 80 + x)];
+    }
+  }
+
+  // Clear last line.
+  for(size_t x = 0; x < 80; ++x) {
+    terminal[2 * (24 * 80 + x)] = ' ';
+  }
+
+  cursor_y = 24;
+}
+
 void terminal_putchar(const char c) {
   // Wait until transmitter holding register is empty.
   while(!(inb(port1 + 5) & 0x20)) { }
   // Write character to serial port 1.
   outb(port1, c);
 
-  // Quit if printing outside the screen. Eventually we will support scrolling.
-  if(cursor_y > 25) return;
+  if(cursor_y >= 25) terminal_scroll();
 
   if(c == '\n') {
     cursor_x = 0;
     cursor_y += 1;
+  } else if (c == '\t') {
+    cursor_x -= cursor_x % 8;
+    cursor_x += 8;
   } else {
-    terminal[2 * (cursor_y * 80 + cursor_x)] = c;
-    if(++cursor_x >= 80) {
-      cursor_x = 0;
-      cursor_y += 1;
-    }
+    terminal[2 * (cursor_y * 80 + cursor_x++)] = c;
+  }
+
+  if(cursor_x >= 80) {
+    cursor_x = 0;
+    cursor_y += 1;
   }
 
   const uint16_t cursor_position = cursor_y * 80 + cursor_x;

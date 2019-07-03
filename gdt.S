@@ -55,7 +55,7 @@ switch_user_mode:
 gdt:
         .quad 0x0000000000000000 // Null segment.
         .quad 0x00cf9a000000ffff // Kernel code segment.
-        .quad 0x00cf92000000ffff // Kernel cata segment.
+        .quad 0x00cf92000000ffff // Kernel data segment.
         .quad 0x00cffa000000ffff // User mode code segment.
         .quad 0x00cff2000000ffff // User mode data segment.
         .quad 0x0000e90000000068 // Task state segment.

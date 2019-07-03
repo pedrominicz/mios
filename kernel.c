@@ -1,7 +1,6 @@
 #include "gdt.h"
 #include "interrupt.h"
 #include "terminal.h"
-#include "x86.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -33,13 +32,20 @@ void mios_init(uint32_t magic, uint32_t ebx) {
 
   init_terminal("mios\n");
 
-  switch_user_mode();
+  // Horribly ugly tests.
+  terminal_print("1234567890123456789012345678901234567890\n");
+  terminal_print("Hello\ttabs\tworld.\n");
+  for(size_t i = 0; i < 100; ++i) {
+    terminal_print_hex(i);
+    terminal_putchar('\n');
+  }
+  terminal_print("Hello\ttabs\tworld.\n");
+  terminal_putchar('\n');
+  terminal_putchar('\n');
+  for(size_t i = 0; i < 10; ++i) {
+    terminal_print_hex(i);
+    terminal_putchar('\n');
+  }
 
-  asm volatile (
-      "mov $0x1234, %%eax;"
-      "int $0x80;"
-      "mov $0x4321, %%eax;"
-      "int $0x80" ::: "eax");
-
-  while(1) { }
+  asm volatile ("hlt");
 }
