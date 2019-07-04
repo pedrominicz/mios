@@ -27,7 +27,8 @@ void init_idt(void) {
     if(interrupts[i]) idt[i] = make_interrupt_gate(interrupts[i]);
   }
 
-  // Make `int $0x80` accessible from user mode.
+  // Make breakpoints and syscalls accessible from user mode.
+  if(idt[0x03]) idt[0x03] |= (uint64_t)0x60 << 40;
   if(idt[0x80]) idt[0x80] |= (uint64_t)0x60 << 40;
 
   volatile uint64_t idt_descriptor = 0;

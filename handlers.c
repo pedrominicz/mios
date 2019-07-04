@@ -8,7 +8,7 @@
 
 static volatile bool breakpoint_continue = false;
 
-static char* interrupt_name[256] = {
+static const char* const interrupt_name[256] = {
   [0x00] = "divide error (`div` and `idiv`)",
   [0x01] = "debug exception",
   [0x02] = "non maskable interrupt (NMI)",
@@ -25,20 +25,20 @@ static char* interrupt_name[256] = {
   [0x0d] = "general protection fault",
   [0x0e] = "page fault",
 
-  [0x10] = "x87 fpu floating-point error",
+  [0x10] = "x87 FPU floating-point error",
   [0x11] = "alignment check",
   [0x12] = "machine check",
   [0x13] = "simd floating-point exception",
   [0x14] = "virtualization exception",
 };
 
-static void invalid_tss_print_error(uint32_t error_code);
-static void segment_not_present_print_error(uint32_t error_code);
-static void stack_segment_fault_print_error(uint32_t error_code);
-static void general_protection_print_error(uint32_t error_code);
-static void page_fault_print_error(uint32_t error_code);
+static void invalid_tss_print_error(const uint32_t error_code);
+static void segment_not_present_print_error(const uint32_t error_code);
+static void stack_segment_fault_print_error(const uint32_t error_code);
+static void general_protection_print_error(const uint32_t error_code);
+static void page_fault_print_error(const uint32_t error_code);
 
-void (*interrupt_print_error[256])(uint32_t error_code) = {
+static void (* const interrupt_print_error[256])(const uint32_t error_code) = {
   [0x0a] = invalid_tss_print_error,
   [0x0b] = segment_not_present_print_error,
   [0x0c] = stack_segment_fault_print_error,
@@ -46,28 +46,40 @@ void (*interrupt_print_error[256])(uint32_t error_code) = {
   [0x0e] = page_fault_print_error,
 };
 
-static void invalid_tss_print_error(uint32_t error_code) {
+static void invalid_tss_print_error(const uint32_t error_code) {
   (void)error_code;
-  terminal_putchar('\n');
 }
 
-static void segment_not_present_print_error(uint32_t error_code) {
+static void segment_not_present_print_error(const uint32_t error_code) {
   (void)error_code;
-  terminal_putchar('\n');
 }
 
-static void stack_segment_fault_print_error(uint32_t error_code) {
+static void stack_segment_fault_print_error(const uint32_t error_code) {
   (void)error_code;
-  terminal_putchar('\n');
 }
 
-static void general_protection_print_error(uint32_t error_code) {
-  (void)error_code;
-  terminal_putchar('\n');
+static void general_protection_print_error(const uint32_t error_code) {
+  if(error_code) {
+    terminal_putchar('\n');
+
+    if(error_code & 0x00000001) {
+      terminal_print("\tThe exception occurred during delivery of an event external to the program (bit 0 set).\n");
+    }
+
+    terminal_print("\tSegment selector index (");
+    if(error_code & 0x00000002) {
+      terminal_print("IDT");
+    } else {
+      terminal_print(error_code & 0x00000004 ? "LDT" : "GDT");
+    }
+    terminal_print("): 0x");
+    terminal_print_hex16(error_code & 0xfff8);
+    terminal_putchar('\n');
+  }
 }
 
-static void page_fault_print_error(uint32_t error_code) {
-  terminal_print("\n\n");
+static void page_fault_print_error(const uint32_t error_code) {
+  terminal_print("\n");
 
   terminal_print(error_code & 0x00000001 ?
       "\tThe fault was caused by a page-level protection violation (bit 0 set).\n" :
@@ -90,8 +102,7 @@ static void page_fault_print_error(uint32_t error_code) {
   }
 }
 
-
-void interrupt_handler(InterruptFrame* frame) {
+void interrupt_handler(const InterruptFrame* const frame) {
   terminal_print("Interrupt 0x");
   terminal_print_hex8(frame->interrupt_number);
 
@@ -106,7 +117,7 @@ void interrupt_handler(InterruptFrame* frame) {
   if(interrupt_print_error[frame->interrupt_number]) {
     terminal_print(" Error code 0x");
     terminal_print_hex32(frame->interrupt_error_code);
-    terminal_putchar('.');
+    terminal_print(".\n");
     interrupt_print_error[frame->interrupt_number](frame->interrupt_error_code);
   } else {
     terminal_putchar('\n');
@@ -137,12 +148,17 @@ void interrupt_handler(InterruptFrame* frame) {
   terminal_print("         gs 0x"); terminal_print_hex16(frame->gs);
   terminal_putchar('\n');
 
+  terminal_putchar('\n');
+  terminal_print("    esp 0x"); terminal_print_hex32(frame->esp);
+  terminal_print("     ss 0x"); terminal_print_hex16(frame->ss);
+  terminal_putchar('\n');
+
   while(1) {
     asm volatile ("cli; hlt");
   }
 }
 
-void breakpoint_handler(InterruptFrame* frame) {
+void breakpoint_handler(const InterruptFrame* const frame) {
   terminal_print("Breakpoint at \"");
   terminal_print((const char*)frame->eax);
   terminal_print("\" line #");
@@ -156,15 +172,9 @@ void breakpoint_handler(InterruptFrame* frame) {
   }
 }
 
-void keyboard_handler(InterruptFrame* frame) {
+void keyboard_handler(const InterruptFrame* const frame) {
   (void)frame;
   if(inb(0x60) == 0x9c) { // Enter key released.
     breakpoint_continue = true;
   }
-}
-
-void syscall_handler(InterruptFrame* frame) {
-  terminal_print("Syscall 0x");
-  terminal_print_hex(frame->eax);
-  terminal_print(".\n");
 }
