@@ -1,18 +1,13 @@
+#include "memory.h"
+
 .code32
 
-#define MULTIBOOT_MAGIC 0x1badb002
-#define MULTIBOOT_FLAGS (0x00000001 | 0x00000002)
-
-// Same as in "kernel.ld".
-#define KERNEL_PHYSICAL_BASE 0x00100000 // 1MB.
-#define KERNEL_VIRTUAL_BASE 0xf0100000
-#define KERNEL_OFFSET (KERNEL_VIRTUAL_BASE - KERNEL_PHYSICAL_BASE)
+#define MULTIBOOT_MAGIC         0x1badb002
+#define MULTIBOOT_ALIGN_MODULES 0x00000001
+#define MULTIBOOT_MEMORY_INFO   0x00000002
+#define MULTIBOOT_FLAGS         (MULTIBOOT_ALIGN_MODULES | MULTIBOOT_MEMORY_INFO)
 
 .section .multiboot
-.global _start
-_start:
-        jmp start
-
 .balign 16
 multiboot_header:
         .long MULTIBOOT_MAGIC
@@ -20,15 +15,17 @@ multiboot_header:
         .long -(MULTIBOOT_MAGIC + MULTIBOOT_FLAGS) // Multiboot checksum.
         .space 48 - (. - multiboot_header)
 
-start:
-        mov %ebx, %edi
-        mov %eax, %esi
+.text
+.global entry
+entry:
+        cmp $0x2badb002, %eax   // Multiboot magic.
+        jne hang
 
         mov %cr4, %eax
         or $0x10, %eax          // Enable page size extension.
         mov %eax, %cr4
 
-        mov $page_directory - KERNEL_OFFSET, %eax
+        mov $init_page_directory - KERNEL_OFFSET, %eax
         mov %eax, %cr3
 
         mov %cr0, %eax
@@ -36,30 +33,27 @@ start:
         or $0x80000000, %eax    // Enable paging.
         mov %eax, %cr0
 
-        mov $stack, %esp
-        push $0
-        popf
+        mov %ebx, multiboot_info // Pointer to Multiboot information structure.
 
-        push %edi               // Multiboot information structure.
-        push %esi               // Multiboot magic.
+        mov $init_stack, %esp
 
-        mov $1f, %eax
-        jmp *%eax
-1:
-        movl $0, page_directory // Invalidate first page directory entry.
+        call init               // Should never return. If it does, hang.
 
-        call mios_init
 hang:
         hlt
         jmp hang
 
 .data
+.global multiboot_info
+multiboot_info:                 // `const MultibootInfo* const multiboot_info`
+        .space 4
+
         .space 4096
-stack:
+init_stack:
 
 .balign 4096
-page_directory:
+init_page_directory:
         .long 0x00000083
-        .space (KERNEL_VIRTUAL_BASE >> 22) * 4 - (. - page_directory)
-        .long 0x00000087
-        .space 4098 - (. - page_directory)
+        .space (KERNEL_VIRTUAL_BASE >> 22) * 4 - (. - init_page_directory)
+        .long 0x00000083
+        .space 4096 - (. - init_page_directory)

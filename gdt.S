@@ -28,29 +28,6 @@ init_gdt:
         popf
         ret
 
-.global switch_user_mode
-switch_user_mode:
-        pop %edx
-        mov %esp, tss + 4       // Stack pointer for ring 0.
-        cli
-        mov $0x23, %ax
-        mov %ax, %ds
-        mov %ax, %es
-        mov %ax, %fs
-        mov %ax, %gs
-        push $0x23
-        push $user_mode_stack
-        pushf
-        pop %eax
-        or $0x200, %eax
-        push %eax
-        push $0x1b
-        push $1f
-        iret
-1:
-        push %edx
-        ret
-
 .data
 gdt:
         .quad 0x0000000000000000 // Null segment.

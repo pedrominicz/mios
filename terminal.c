@@ -9,7 +9,7 @@ static const uint16_t port1 = 0x03f8;
 static uint8_t* const terminal = (uint8_t*)0xf00b8000;
 static volatile size_t cursor_x = 0, cursor_y = 0;
 
-void init_terminal(const char* s) {
+void init_terminal(void) {
   // Initialize serial port 1.
   outb(port1 + 1, 0x00); // Disable all interrupts.
   outb(port1 + 3, 0x80); // Set divisor latch bit on line control.
@@ -24,7 +24,7 @@ void init_terminal(const char* s) {
   outb(port1 + 4, 0x03);
 
   terminal_clear();
-  terminal_print(s);
+  terminal_print("mios\n");
 }
 
 void terminal_clear(void) {

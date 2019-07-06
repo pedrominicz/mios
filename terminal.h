@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-void init_terminal(const char* s);
+void init_terminal(void);
 
 void terminal_clear(void);
 void terminal_print_decimal(uintmax_t n);

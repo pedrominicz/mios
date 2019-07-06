@@ -76,8 +76,7 @@ interrupt_##n:                  \
 .data
 .balign 4
 .global interrupts
-interrupts:                     // `interrupts` will be accessed from C as
-                                // `uintptr_t interrupts[256]`.
+interrupts:                     // `uintptr_t interrupts[256]`.
 
 // Divide error (`div` and `idiv`).
 INTERRUPT(0x00, interrupt_handler)

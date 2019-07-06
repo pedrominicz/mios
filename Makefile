@@ -1,6 +1,8 @@
 TOOLPREFIX = i386-elf-
 CC = $(TOOLPREFIX)gcc
 LD = $(TOOLPREFIX)ld
+# C preprocessor.
+CPP = $(TOOLPREFIX)cpp
 
 CFLAGS = -pedantic -Wall -Wextra -O3
 # Generate code for 32-bit ABI.
@@ -32,14 +34,17 @@ mios.iso: mios.bin grub.cfg
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o mios.iso isodir
 
-mios.bin: kernel.ld $(OBJ)
-	$(LD) $(LDFLAGS) -T kernel.ld -o mios.bin $(OBJ) $(LIBGCC)
+mios.bin: kernel.lds.i $(OBJ)
+	$(LD) $(LDFLAGS) -T kernel.lds.i -o mios.bin $(OBJ) $(LIBGCC)
+
+kernel.lds.i: kernel.lds
+	$(CPP) -D__ASSEMBLER__ -P kernel.lds -o kernel.lds.i
 
 %.o: %.S
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
 	rm -rf isodir
-	rm -f mios.iso mios.bin $(OBJ)
+	rm -f mios.iso mios.bin kernel.lds.i $(OBJ)
 
 .PHONY: all clean
