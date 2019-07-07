@@ -4,10 +4,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
-extern void* kernel_end; // Defined in "kernel.lds"
+typedef union Page {
+  union Page* next;
+  uint32_t _[1024];
+} Page;
+
+Page* free_pages;
 
 void init_kernel_page_directory(void) {
-  extern uint32_t kernel_page_directory[1024]; // Defined in "entry.S"
+  extern uint32_t kernel_page_directory[1024]; // Defined in "entry.S".
 
   for(size_t i = 0; i < 1024; ++i) {
     const uint32_t page_address = (i << 22) - KERNEL_OFFSET;
@@ -17,6 +22,12 @@ void init_kernel_page_directory(void) {
   }
 
   switch_kernel_page_directory();
+}
+
+static uint64_t clamp(uint64_t n, const uint64_t min, const uint64_t max) {
+  n = n > min ? n : min;
+  n = n > max ? max : n;
+  return n;
 }
 
 void init_kernel_malloc(void) {
@@ -34,37 +45,55 @@ void init_kernel_malloc(void) {
     uint32_t type;
   } MultibootMemoryRegion;
 
-  extern const uint32_t multiboot_info_address; // Defined in "entry.S".
+  extern const uintptr_t multiboot_info_address; // Defined in "entry.S".
   const MultibootInfo* const multiboot_info =
     physical_to_virtual(multiboot_info_address);
-
-  terminal_print("Multiboot info flags 0x");
-  terminal_print_hex32(multiboot_info->flags);
-  terminal_print(".\n");
 
   const MultibootMemoryRegion* memory_map =
     physical_to_virtual(multiboot_info->memory_map_address);
   const MultibootMemoryRegion* const memory_map_end =
     physical_to_virtual(multiboot_info->memory_map_address + multiboot_info->memory_map_size);
 
-  while(memory_map < memory_map_end) {
-    if(memory_map->address != (uint32_t)memory_map->address) {
-      terminal_print("Unaddressable memory region.\n");
-    } else {
-      terminal_print("Memory region from 0x");
-      terminal_print_hex32(memory_map->address);
-      terminal_print(" to 0x");
-      terminal_print_hex32(memory_map->address + memory_map->size - 1);
-      terminal_print(" type ");
-      terminal_print_decimal(memory_map->type);
-      terminal_print(".\n");
+  extern const int kernel_end[]; // Defined in "kernel.lds".
+  const uint64_t first_page =
+    (virtual_to_physical(kernel_end) + 4095) & 0xfffff000;
+
+  for(; memory_map < memory_map_end; ++memory_map) {
+    if(memory_map->type != 1) continue;
+
+    const uint64_t region_start =
+      clamp(memory_map->address, first_page, 0x100000000);
+    const uint64_t region_end =
+      clamp(memory_map->address + memory_map->size, first_page, 0x100000000);
+
+    uint64_t page = (region_start + 4095) & 0xfffff000;
+    const uint64_t end = region_end - (region_end % 4096);
+
+    for(; page < end; page += 4096) {
+      Page* new_page = physical_to_virtual(page);
+      new_page->next = free_pages;
+      free_pages = new_page;
     }
-    ++memory_map;
   }
 }
 
+void free_page(void* page) {
+  Page* new_page = page;
+  for(size_t i = 0; i < 1024; ++i) {
+    new_page->_[i] = 0;
+  }
+  new_page->next = free_pages;
+  free_pages = new_page;
+}
+
+void* malloc_page(void) {
+  Page* ret = free_pages;
+  if(ret) free_pages = ret->next;
+  return ret;
+}
+
 void switch_kernel_page_directory(void) {
-  extern uint32_t kernel_page_directory[1024]; // Defined in "entry.S"
+  extern uint32_t kernel_page_directory[1024]; // Defined in "entry.S".
 
   asm volatile ("mov %0, %%cr3" :: "r"(virtual_to_physical(kernel_page_directory)));
 }

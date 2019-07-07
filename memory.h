@@ -15,13 +15,16 @@
 void init_kernel_page_directory(void);
 void init_kernel_malloc(void);
 
+void free_page(void* page);
+void* malloc_page(void);
+
 void switch_kernel_page_directory(void);
 
-static inline uint32_t virtual_to_physical(void* address) {
-  return (uint32_t)address - KERNEL_OFFSET;
+static inline uintptr_t virtual_to_physical(const void* const address) {
+  return (uintptr_t)address - KERNEL_OFFSET;
 }
 
-static inline void* physical_to_virtual(uint32_t address) {
+static inline void* physical_to_virtual(const uintptr_t address) {
   return (void*)(address + KERNEL_OFFSET);
 }
 

@@ -11,5 +11,6 @@ SECTIONS
   .data : AT(ADDR(.data) - KERNEL_OFFSET) { *(.rodata* .data) }
   .bss : AT(ADDR(.bss) - KERNEL_OFFSET) { *(.bss) }
 
-  kernel_end = .;
+  kernel_end = .; /* Virtual address of the first byte after kernel image
+                   * (`const int kernel_end[]`). */
 }

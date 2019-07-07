@@ -80,5 +80,5 @@ init_gdt_descriptor:
         .long init_gdt
 
 .global multiboot_info_address
-multiboot_info_address:         // `const uint32_t multiboot_info_address`
+multiboot_info_address:         // `const uintptr_t multiboot_info_address`
         .space 4
