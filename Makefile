@@ -4,11 +4,9 @@ LD = $(TOOLPREFIX)ld
 # C preprocessor.
 CPP = $(TOOLPREFIX)cpp
 
-CFLAGS = -pedantic -Wall -Wextra -O3
+CFLAGS = -pedantic -Wall -Wextra -Werror -O3
 # Generate code for 32-bit ABI.
 CFLAGS += -m32
-# Produce debugging information in stabs format (if that is supported).
-CFLAGS += -gstabs
 # No position-independent code
 CFLAGS += -fno-pic -fno-pie
 # No extra code to check for buffer overflows, such as stack smashing attacks.

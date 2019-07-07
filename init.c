@@ -1,4 +1,3 @@
-#include "gdt.h"
 #include "interrupt.h"
 #include "memory.h"
 #include "syscall.h"
@@ -9,10 +8,10 @@
 
 void init(void) {
   init_terminal();
-  init_memory();
-  init_gdt();
   init_idt();
-  init_pic();
+
+  init_kernel_page_directory();
+  init_kernel_malloc();
 
   while(1) {
     asm volatile ("hlt");

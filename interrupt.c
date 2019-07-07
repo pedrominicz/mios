@@ -1,5 +1,5 @@
-#include "gdt.h"
 #include "interrupt.h"
+#include "memory.h"
 #include "x86.h"
 
 #include <stddef.h>

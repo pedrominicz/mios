@@ -33,7 +33,17 @@ entry:
         or $0x80000000, %eax    // Enable paging.
         mov %eax, %cr0
 
-        mov %ebx, multiboot_info // Pointer to Multiboot information structure.
+        lgdt (init_gdt_descriptor)
+        mov $KERNEL_DATA_SELECTOR, %ax
+        mov %ax, %ds
+        mov %ax, %es
+        mov %ax, %fs
+        mov %ax, %gs
+        mov %ax, %ss
+        jmp $KERNEL_CODE_SELECTOR, $1f
+1:
+
+        mov %ebx, multiboot_info_address
 
         mov $init_stack, %esp
 
@@ -44,10 +54,6 @@ hang:
         jmp hang
 
 .data
-.global multiboot_info
-multiboot_info:                 // `const MultibootInfo* const multiboot_info`
-        .space 4
-
         .space 4096
 init_stack:
 
@@ -57,3 +63,22 @@ init_page_directory:
         .space (KERNEL_VIRTUAL_BASE >> 22) * 4 - (. - init_page_directory)
         .long 0x00000083
         .space 4096 - (. - init_page_directory)
+
+.global kernel_page_directory   // `uint32_t kernel_page_directory[1024]`
+.balign 4096
+kernel_page_directory:
+        .space 4096
+
+init_gdt:
+        .quad 0x0000000000000000 // Null segment.
+        .quad 0x00cf9a000000ffff // Kernel code segment.
+        .quad 0x00cf92000000ffff // Kernel data segment.
+init_gdt_end:
+
+init_gdt_descriptor:
+        .word init_gdt_end - init_gdt - 1
+        .long init_gdt
+
+.global multiboot_info_address
+multiboot_info_address:         // `const uint32_t multiboot_info_address`
+        .space 4

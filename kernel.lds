@@ -5,17 +5,11 @@ ENTRY(entry)
 
 SECTIONS
 {
-  . = KERNEL_PHYSICAL_BASE;
+  . = KERNEL_VIRTUAL_BASE;
 
-  .unpaged.text : { unpaged*(.text) }
-  .unpaged.data : { unpaged*(.data .rodata*) }
-  .unpaged.bss : { unpaged*(.bss) }
-
-  . += KERNEL_OFFSET;
-
-  .text : AT(ADDR(.text) - KERNEL_OFFSET) { *(.multiboot) *(.text) }
-  .data : AT(ADDR(.data) - KERNEL_OFFSET) { *(.data .rodata*) }
+  .text : AT(ADDR(.text) - KERNEL_OFFSET) { *(.multiboot .text) }
+  .data : AT(ADDR(.data) - KERNEL_OFFSET) { *(.rodata* .data) }
   .bss : AT(ADDR(.bss) - KERNEL_OFFSET) { *(.bss) }
 
-  PROVIDE(kernel_end = .);
+  kernel_end = .;
 }
