@@ -21,6 +21,8 @@ entry:
         cmp $0x2badb002, %eax   // Multiboot magic.
         jne hang
 
+        mov %ebx, multiboot_info_address - KERNEL_OFFSET
+
         mov %cr4, %eax
         or $0x10, %eax          // Enable page size extension.
         mov %eax, %cr4
@@ -33,6 +35,10 @@ entry:
         or $0x80000000, %eax    // Enable paging.
         mov %eax, %cr0
 
+        mov $init_stack, %esp
+        push $0
+        popf
+
         lgdt (init_gdt_descriptor)
         mov $KERNEL_DATA_SELECTOR, %ax
         mov %ax, %ds
@@ -42,10 +48,6 @@ entry:
         mov %ax, %ss
         jmp $KERNEL_CODE_SELECTOR, $1f
 1:
-
-        mov %ebx, multiboot_info_address
-
-        mov $init_stack, %esp
 
         call init               // Should never return. If it does, hang.
 

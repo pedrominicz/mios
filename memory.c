@@ -1,5 +1,4 @@
 #include "memory.h"
-#include "terminal.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -9,7 +8,7 @@ typedef union Page {
   uint32_t _[1024];
 } Page;
 
-Page* free_pages;
+static Page* free_pages;
 
 void init_kernel_page_directory(void) {
   extern uint32_t kernel_page_directory[1024]; // Defined in "entry.S".
