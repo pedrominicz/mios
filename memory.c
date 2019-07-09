@@ -3,6 +3,20 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef struct MultibootInfo {
+  uint32_t flags;
+  uint32_t _[10];
+  uint32_t memory_map_size;
+  uint32_t memory_map_address;
+} MultibootInfo;
+
+typedef struct MultibootMemoryRegion {
+  uint32_t _;
+  uint64_t address;
+  uint64_t size;
+  uint32_t type;
+} MultibootMemoryRegion;
+
 typedef union Page {
   union Page* next;
   uint32_t _[1024];
@@ -30,20 +44,6 @@ static uint64_t clamp(uint64_t n, const uint64_t min, const uint64_t max) {
 }
 
 void init_kernel_malloc(void) {
-  typedef struct MultibootInfo {
-    uint32_t flags;
-    uint32_t _[10];
-    uint32_t memory_map_size;
-    uint32_t memory_map_address;
-  } MultibootInfo;
-
-  typedef struct MultibootMemoryRegion {
-    uint32_t _;
-    uint64_t address;
-    uint64_t size;
-    uint32_t type;
-  } MultibootMemoryRegion;
-
   extern const uintptr_t multiboot_info_address; // Defined in "entry.S".
   const MultibootInfo* const multiboot_info =
     physical_to_virtual(multiboot_info_address);
@@ -53,17 +53,13 @@ void init_kernel_malloc(void) {
   const MultibootMemoryRegion* const memory_map_end =
     physical_to_virtual(multiboot_info->memory_map_address + multiboot_info->memory_map_size);
 
-  extern const int kernel_end[]; // Defined in "kernel.lds".
-  const uint64_t first_page =
-    (virtual_to_physical(kernel_end) + 4095) & 0xfffff000;
-
   for(; memory_map < memory_map_end; ++memory_map) {
     if(memory_map->type != 1) continue;
 
     const uint64_t region_start =
-      clamp(memory_map->address, first_page, 0x100000000);
+      clamp(memory_map->address, 0x400000, 0x8000000);
     const uint64_t region_end =
-      clamp(memory_map->address + memory_map->size, first_page, 0x100000000);
+      clamp(memory_map->address + memory_map->size, 0x400000, 0x8000000);
 
     uint64_t page = (region_start + 4095) & 0xfffff000;
     const uint64_t end = region_end - (region_end % 4096);

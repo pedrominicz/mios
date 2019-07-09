@@ -18,9 +18,7 @@ multiboot_header:
 .text
 .global entry
 entry:
-        cmp $0x2badb002, %eax   // Multiboot magic.
-        jne hang
-
+        mov %eax, multiboot_magic - KERNEL_OFFSET
         mov %ebx, multiboot_info_address - KERNEL_OFFSET
 
         mov %cr4, %eax
@@ -66,7 +64,7 @@ init_page_directory:
         .long 0x00000083
         .space 4096 - (. - init_page_directory)
 
-.global kernel_page_directory   // `uint32_t kernel_page_directory[1024]`
+.global kernel_page_directory   // `uint32_t kernel_page_directory[1024]`.
 .balign 4096
 kernel_page_directory:
         .space 4096
@@ -81,6 +79,10 @@ init_gdt_descriptor:
         .word init_gdt_end - init_gdt - 1
         .long init_gdt
 
+.global multiboot_magic         // `const uint32_t multiboot_magic`.
+multiboot_magic:
+        .long 0
+
 .global multiboot_info_address
-multiboot_info_address:         // `const uintptr_t multiboot_info_address`
-        .space 4
+multiboot_info_address:         // `const uintptr_t multiboot_info_address`.
+        .long 0

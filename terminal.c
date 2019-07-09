@@ -1,105 +1,38 @@
 #include "terminal.h"
-#include "x86.h"
+#include "util.h"
 
 #include <stddef.h>
 #include <stdint.h>
 
-static const char digits[16] = "0123456789abcdef";
-static const uint16_t port1 = 0x03f8;
+static const uint16_t port = 0x03f8;
 static uint8_t* const terminal = (uint8_t*)0xf00b8000;
 static volatile size_t cursor_x = 0, cursor_y = 0;
 
 void init_terminal(void) {
   // Initialize serial port 1.
-  outb(port1 + 1, 0x00); // Disable all interrupts.
-  outb(port1 + 3, 0x80); // Set divisor latch bit on line control.
+  outb(port + 1, 0x00); // Disable all interrupts.
+  outb(port + 3, 0x80); // Set divisor latch bit on line control.
   const uint32_t baud = 115200;
   const uint32_t divisor = 115200 / baud;
-  outb(port1 + 0, divisor & 0xff);
-  outb(port1 + 1, (divisor >> 8) & 0xff);
-  outb(port1 + 3, 0x03); // 8 bits, one stop bit, no parity.
-  outb(port1 + 2, 0xc7); // Enable FIFO, clear them, with 14-byte threshold.
+  outb(port + 0, divisor & 0xff);
+  outb(port + 1, (divisor >> 8) & 0xff);
+  outb(port + 3, 0x03); // 8 bits, one stop bit, no parity.
+  outb(port + 2, 0xc7); // Enable FIFO, clear them, with 14-byte threshold.
   // Set data terminal ready and request to send bits on modem control
   // register.
-  outb(port1 + 4, 0x03);
+  outb(port + 4, 0x03);
 
-  terminal_clear();
-  terminal_print("mios\n");
-}
-
-void terminal_clear(void) {
+  // Clear terminal.
   for(size_t i = 0; i < 80 * 25 * 2; i += 2) {
     terminal[i] = ' ';
   }
-
   cursor_x = cursor_y = 0;
-  // 0x03d4 selects which register will be used by 0x03b5.
-  outb(0x03d4, 14); // High bits of cursor position.
-  outb(0x03d5, 0);
-  outb(0x03d4, 15); // Low bits of cursor position.
-  outb(0x03d5, 0);
-}
 
-void terminal_print_decimal(uintmax_t n) {
-  char s[21] = {0};
-
-  if(n == 0) {
-    terminal_putchar('0');
-    return;
-  }
-
-  size_t i = 20;
-  for(; n; n /= 10) {
-    s[--i] = digits[n % 10];
-  }
-  terminal_print(s + i);
-}
-
-void terminal_print_hex(uintmax_t n) {
-  char s[sizeof(uintmax_t) * 2 + 1] = {0};
-
-  if(n == 0) {
-    terminal_putchar('0');
-    return;
-  }
-
-  size_t i = sizeof(uintmax_t) * 2;
-  for(; n; n /= 16) {
-    s[--i] = digits[n % 16];
-  }
-  terminal_print(s + i);
-}
-
-void terminal_print_hex8(uint8_t n) {
-  char s[sizeof(uint8_t) * 2 + 1] = "00";
-  for(size_t i = sizeof(uint8_t) * 2; n; n /= 16) {
-    s[--i] = digits[n % 16];
-  }
-  terminal_print(s);
-}
-
-void terminal_print_hex16(uint16_t n) {
-  char s[sizeof(uint16_t) * 2 + 1] = "0000";
-  for(size_t i = sizeof(uint16_t) * 2; n; n /= 16) {
-    s[--i] = digits[n % 16];
-  }
-  terminal_print(s);
-}
-
-void terminal_print_hex32(uint32_t n) {
-  char s[sizeof(uint32_t) * 2 + 1] = "00000000";
-  for(size_t i = sizeof(uint32_t) * 2; n; n /= 16) {
-    s[--i] = digits[n % 16];
-  }
-  terminal_print(s);
-}
-
-void terminal_print_hex64(uint64_t n) {
-  char s[sizeof(uint64_t) * 2 + 1] = "0000000000000000";
-  for(size_t i = sizeof(uint64_t) * 2; n; n /= 16) {
-    s[--i] = digits[n % 16];
-  }
-  terminal_print(s);
+  terminal_putchar('m');
+  terminal_putchar('i');
+  terminal_putchar('o');
+  terminal_putchar('s');
+  terminal_putchar('\n');
 }
 
 static void terminal_scroll(void) {
@@ -118,9 +51,9 @@ static void terminal_scroll(void) {
 
 void terminal_putchar(const char c) {
   // Wait until transmitter holding register is empty.
-  while(!(inb(port1 + 5) & 0x20)) { }
+  while(!(inb(port + 5) & 0x20)) { }
   // Write character to serial port 1.
-  outb(port1, c);
+  outb(port, c);
 
   if(cursor_y >= 25) {
     terminal_scroll();
@@ -141,11 +74,4 @@ void terminal_putchar(const char c) {
     cursor_x = 0;
     cursor_y += 1;
   }
-
-  const uint16_t cursor_position = cursor_y * 80 + cursor_x;
-  // 0x03d4 selects which register will be used by 0x03b5.
-  outb(0x03d4, 14); // High bits of cursor position.
-  outb(0x03d5, cursor_position >> 8);
-  outb(0x03d4, 15); // Low bits of cursor position.
-  outb(0x03d5, cursor_position);
 }

@@ -7,10 +7,9 @@ SECTIONS
 {
   . = KERNEL_VIRTUAL_BASE;
 
-  .text : AT(ADDR(.text) - KERNEL_OFFSET) { *(.multiboot .text) }
+  .text : AT(ADDR(.text) - KERNEL_OFFSET) { *(.multiboot) *(.text) }
   .data : AT(ADDR(.data) - KERNEL_OFFSET) { *(.rodata* .data) }
   .bss : AT(ADDR(.bss) - KERNEL_OFFSET) { *(.bss) }
 
-  kernel_end = .; /* Virtual address of the first byte after kernel image
-                   * (`const int kernel_end[]`). */
+  ASSERT(. < KERNEL_VIRTUAL_BASE + 0x300000, "Kernel bigger than 3MB.")
 }

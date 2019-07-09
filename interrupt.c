@@ -1,8 +1,8 @@
 #include "interrupt.h"
 #include "memory.h"
-#include "terminal.h"
-#include "x86.h"
+#include "util.h"
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
@@ -109,103 +109,79 @@ static void stack_segment_fault_print_error(const uint32_t error_code) {
 
 static void general_protection_print_error(const uint32_t error_code) {
   if(error_code) {
-    terminal_putchar('\n');
+    const bool e0 = error_code & 1;
+    const bool e1 = error_code & 2;
+    const bool e2 = error_code & 4;
 
-    if(error_code & 0x00000001) {
-      terminal_print("\tThe exception occurred during delivery of an event external to the program (bit 0 set).\n");
+    if(e0) {
+      printf("\tThe exception occurred during delivery of an event external to the program (bit 0 set).\n");
     }
 
-    terminal_print("\tSegment selector index (");
-    if(error_code & 0x00000002) {
-      terminal_print("IDT");
-    } else {
-      terminal_print(error_code & 0x00000004 ? "LDT" : "GDT");
-    }
-    terminal_print("): 0x");
-    terminal_print_hex16(error_code & 0xfff8);
-    terminal_putchar('\n');
+    printf("\tSegment selector index (%s): 0x%04x\n\n",
+        e1 ? "IDT" : e2 ? "LDT" : "GDT",
+        error_code & ~3);
   }
 }
 
 static void page_fault_print_error(const uint32_t error_code) {
-  terminal_print("\n");
+  const bool e0 = error_code & 1;
+  const bool e1 = error_code & 2;
+  const bool e2 = error_code & 4;
+  const bool e3 = error_code & 8;
+  const bool e4 = error_code & 16;
 
-  terminal_print(error_code & 0x00000001 ?
-      "\tThe fault was caused by a page-level protection violation (bit 0 set).\n" :
-      "\tThe fault was caused by a non-present page (bit 0 clear).\n");
+  printf("\tThe fault was caused by a %s.\n"
+      "\tThe access causing the fault was a %s.\n"
+      "\tA %s-mode access caused the fault.\n",
+      e0 ? "protection violation" : "non-present page",
+      e1 ? "write" : "read",
+      e2 ? "user" : "supervisor");
 
-  terminal_print(error_code & 0x00000002 ?
-      "\tThe access causing the fault was a write (bit 1 set).\n" :
-      "\tThe access causing the fault was a read (bit 1 clear).\n");
-
-  terminal_print(error_code & 0x00000004 ?
-      "\tA user-mode access caused the fault (bit 2 set).\n" :
-      "\tA supervisor-mode access caused the fault (bit 2 clear).\n");
-
-  if(error_code & 0x00000008) {
-    terminal_print("\tThe fault was caused by a reserved bit set to 1 in some paging-structure entry (bit 3 set).\n");
+  if(e3) {
+    printf("\tThe fault was caused by a reserved bit set to 1.\n");
   }
 
-  if(error_code & 0x00000010) {
-    terminal_print("\tThe fault was caused by an instruction fetch (bit 4 set).\n");
+  if(e4) {
+    printf("\tThe fault was caused by an instruction fetch.\n");
   }
+
+  putchar('\n');
 }
 
 void interrupt_handler(const InterruptFrame* const frame) {
   if(frame->interrupt_number == SYSCALL_INTERRUPT) {
-    terminal_print("Syscall.\n");
+    printf("Syscall.\n");
     return;
   }
 
-  terminal_print("Interrupt 0x");
-  terminal_print_hex8(frame->interrupt_number);
+  printf("Interrupt 0x%02x", frame->interrupt_number);
 
   if(interrupt_name[frame->interrupt_number]) {
-    terminal_print(" (");
-    terminal_print(interrupt_name[frame->interrupt_number]);
-    terminal_putchar(')');
+    printf(" (%s).", interrupt_name[frame->interrupt_number]);
+  } else {
+    putchar('.');
   }
 
-  terminal_putchar('.');
+  if(frame->interrupt_error_code) {
+    printf(" Error code 0x%08x.\n\n", frame->interrupt_error_code);
+  } else {
+    printf("\n\n");
+  }
 
   if(interrupt_print_error[frame->interrupt_number]) {
-    terminal_print(" Error code 0x");
-    terminal_print_hex32(frame->interrupt_error_code);
-    terminal_print(".\n");
     interrupt_print_error[frame->interrupt_number](frame->interrupt_error_code);
-  } else {
-    terminal_putchar('\n');
   }
 
-  terminal_putchar('\n');
-
-  terminal_print("    eax 0x"); terminal_print_hex32(frame->eax);
-  terminal_print("    ecx 0x"); terminal_print_hex32(frame->ecx);
-  terminal_print("    edx 0x"); terminal_print_hex32(frame->edx);
-  terminal_print("    ebx 0x"); terminal_print_hex32(frame->ebx);
-  terminal_putchar('\n');
-
-  terminal_print("   _esp 0x"); terminal_print_hex32(frame->_esp);
-  terminal_print("    ebp 0x"); terminal_print_hex32(frame->ebp);
-  terminal_print("    esi 0x"); terminal_print_hex32(frame->esi);
-  terminal_print("    edi 0x"); terminal_print_hex32(frame->edi);
-  terminal_putchar('\n');
-
-  terminal_print("    eip 0x"); terminal_print_hex32(frame->eip);
-  terminal_print(" eflags 0x"); terminal_print_hex32(frame->eflags);
-  terminal_print("     cs 0x"); terminal_print_hex16(frame->cs);
-  terminal_putchar('\n');
-
-  terminal_print("     ds 0x"); terminal_print_hex16(frame->ds);
-  terminal_print("         es 0x"); terminal_print_hex16(frame->es);
-  terminal_print("         fs 0x"); terminal_print_hex16(frame->fs);
-  terminal_print("         gs 0x"); terminal_print_hex16(frame->gs);
-  terminal_putchar('\n');
-
-  terminal_putchar('\n');
-  terminal_print("    esp 0x"); terminal_print_hex32(frame->esp);
-  terminal_print("     ss 0x"); terminal_print_hex16(frame->ss);
-  terminal_putchar('\n');
+  printf("    eax 0x%08x    ecx 0x%08x    edx 0x%08x    ebx 0x%08x\n"
+      "   _esp 0x%08x    ebp 0x%08x    esi 0x%08x    edi 0x%08x\n"
+      "    eip 0x%08x eflags 0x%08x     cs 0x%04x\n"
+      "     ds 0x%04x         es 0x%04x         fs 0x%04x         gs 0x%04x\n"
+      "\n    esp 0x%08x     ss 0x%04x\n",
+      frame->eax, frame->ecx, frame->edx, frame->ebx,
+      frame->_esp, frame->ebp, frame->esi, frame->edi,
+      frame->eip, frame->eflags, frame->cs,
+      frame->ds, frame->es, frame->fs, frame->gs,
+      frame->esp, frame->ss);
 
   while(1) {
     asm volatile ("cli; hlt");

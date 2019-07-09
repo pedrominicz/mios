@@ -1,6 +1,7 @@
 #include "interrupt.h"
 #include "memory.h"
 #include "terminal.h"
+#include "util.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -49,6 +50,23 @@ void init(void) {
   asm volatile ("lgdt (%0)" :: "r"(&gdt_descriptor));
 
   asm volatile ("int $0x30");
+
+  printf("Hello.\n");
+  printf("Unsigned decimal:     %u\n"
+         "Unsigned hexadecimal: %x\n", 1234, 0xabcd);
+  printf("Long unsigned decimal:     %zu\n"
+         "Long unsigned hexadecimal: %zx\n"
+         "Pointer: %p\n", 123456789000, 0x1cbe991a08, init);
+  printf("String: %s\n", "Hello!");
+  printf("Null string: %s\n", NULL);
+  printf("Unsigned decimal with padding:     %10u\n"
+         "Unsigned hexadecimal with padding: %10x\n", 1234, 0xabcd);
+  printf("Unsigned decimal with zero padding:     %010u\n"
+         "Unsigned hexadecimal with zero padding: %010x\n", 1234, 0xabcd);
+  printf("Unsigned decimal with space padding:     % 10u\n"
+         "Unsigned hexadecimal with space padding: % 10x\n", 1234, 0xabcd);
+
+  asm volatile ("int $0x9");
 
   while(1) {
     asm volatile ("hlt");

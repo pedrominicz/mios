@@ -1,5 +1,13 @@
 You need a cross-compiler for this to work. `./run` to build and run.
 
+### printf resources
+
+https://en.wikipedia.org/wiki/Printf_format_string#Syntax
+
+https://github.com/mit-pdos/xv6-public/blob/master/console.c#L53
+
+https://github.com/seL4/seL4/blob/master/src/machine/io.c#L158
+
 ### useful resources
 
 https://wiki.osdev.org/Global_Descriptor_Table
