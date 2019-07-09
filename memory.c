@@ -69,25 +69,25 @@ void init_kernel_malloc(void) {
     const uint64_t end = region_end - (region_end % 4096);
 
     for(; page < end; page += 4096) {
-      Page* new_page = physical_to_virtual(page);
-      new_page->next = free_pages;
-      free_pages = new_page;
+      free_page(physical_to_virtual(page));
     }
   }
 }
 
 void free_page(void* page) {
   Page* new_page = page;
-  for(size_t i = 0; i < 1024; ++i) {
-    new_page->_[i] = 0;
-  }
   new_page->next = free_pages;
   free_pages = new_page;
 }
 
 void* malloc_page(void) {
   Page* ret = free_pages;
-  if(ret) free_pages = ret->next;
+  if(ret) {
+    free_pages = ret->next;
+    for(size_t i = 0; i < 1024; ++i) {
+      ret->_[i] = 0;
+    }
+  }
   return ret;
 }
 

@@ -1,9 +1,11 @@
-#ifndef MIOS_IDT_H
-#define MIOS_IDT_H
+#ifndef MIOS_INTERRUPT_H
+#define MIOS_INTERRUPT_H
+
+#define SYSCALL_INTERRUPT 0x30
+
+#ifndef __ASSEMBLER__
 
 #include <stdint.h>
-
-#define breakpoint() asm volatile ("int $3" :: "a"(__FILE__), "b"(__LINE__));
 
 typedef struct InterruptFrame {
   // Pushed by interrupt gate.
@@ -35,4 +37,6 @@ void init_idt(void);
 // Initialize programmable interrupt controller (PIC).
 void init_pic(void);
 
-#endif // MIOS_IDT_H
+#endif // __ASSEMBLER__
+
+#endif // MIOS_INTERRUPT_H

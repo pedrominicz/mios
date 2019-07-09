@@ -1,166 +1,100 @@
+#include "interrupt.h"
+
 .code32
 
-#define INTERRUPT_PUSH(n) \
+.text
+interrupt_common:
+        push %ds
+        push %es
+        push %fs
+        push %gs
+        pusha
+        mov $0x10, %ax
+        mov %ax, %ds
+        mov %ax, %ss
+        push %esp
+        call interrupt_handler
+        add $4, %esp
+        popa
+        pop %gs
+        pop %fs
+        pop %es
+        pop %ds
+        add $8, %esp
+        iret
+
+#define INTERRUPT_COMMON(n, error) \
+.text;                          \
+interrupt_##n:                  \
+        error;                  \
         push $##n;              \
-        push %ds;               \
-        push %es;               \
-        push %fs;               \
-        push %gs;               \
-        pusha;                  \
-        mov $0x10, %ax;         \
-        mov %ax, %ds;           \
-        mov %ax, %ss;           \
-        push %esp;
-
-#define INTERRUPT_POP_RET \
-        add $4, %esp;           \
-        popa;                   \
-        pop %gs;                \
-        pop %fs;                \
-        pop %es;                \
-        pop %ds;                \
-        add $8, %esp;           \
-        iret;
-
-#define INTERRUPT(n, handler) \
-.text;                          \
-interrupt_##n:                  \
-        push $0;                \
-        INTERRUPT_PUSH(n);      \
-        call handler;           \
-        INTERRUPT_POP_RET;      \
+        jmp interrupt_common;   \
 .data;                          \
         .long interrupt_##n;
 
-#define INTERRUPT_ERROR(n, handler) \
-.text;                          \
-interrupt_##n:                  \
-        INTERRUPT_PUSH(n);      \
-        call handler;           \
-        add $4, %esp;           \
-        popa;                   \
-        pop %gs;                \
-        pop %fs;                \
-        pop %es;                \
-        pop %ds;                \
-        add $4, %esp;           \
-        iret;                   \
-.data;                          \
-        .long interrupt_##n;
-
-#define INTERRUPT_MASTER(n, handler) \
-.text;                          \
-interrupt_##n:                  \
-        push $0;                \
-        INTERRUPT_PUSH(n);      \
-        mov $0x20, %al;         \
-        outb $0x20;             \
-        call handler;           \
-        INTERRUPT_POP_RET;      \
-.data;                          \
-        .long interrupt_##n;
-
-#define INTERRUPT_SLAVE(n, handler) \
-.text;                          \
-interrupt_##n:                  \
-        push $0;                \
-        INTERRUPT_PUSH(n);      \
-        mov $0x20, %al;         \
-        outb $0x20;             \
-        outb $0xa0;             \
-        call handler;           \
-        INTERRUPT_POP_RET;      \
-.data;                          \
-        .long interrupt_##n;
+#define INTERRUPT(n)            INTERRUPT_COMMON(n, push $0)
+#define INTERRUPT_ERROR(n)      INTERRUPT_COMMON(n, ;)
 
 .data
 .balign 4
 .global interrupts
-interrupts:                     // `uintptr_t interrupts[256]`.
+interrupts:                     // `const uintptr_t interrupts[]`.
 
-// Divide error (`div` and `idiv`).
-INTERRUPT(0x00, interrupt_handler)
-// Debug exception.
-INTERRUPT(0x01, interrupt_handler)
-// Non maskable interrupt (NMI).
-INTERRUPT(0x02, interrupt_handler)
-// Breakpoint (`int $3`).
-INTERRUPT(0x03, breakpoint_handler)
-// Overflow (`into`).
-INTERRUPT(0x04, interrupt_handler)
-// Bound range exception (`bound`).
-INTERRUPT(0x05, interrupt_handler)
-// Invalid opcode (`ud2`).
-INTERRUPT(0x06, interrupt_handler)
-// Device not available (`wait` and `fwait`).
-INTERRUPT(0x07, interrupt_handler)
-// Double fault (error code always 0).
-INTERRUPT_ERROR(0x08, interrupt_handler)
-// Coprocessor segment overrun (floating-point instructions).
-INTERRUPT(0x09, interrupt_handler)
-// Invalid Task Statement Segment (TTS).
-INTERRUPT_ERROR(0x0a, interrupt_handler)
-// Segment not present.
-INTERRUPT_ERROR(0x0b, interrupt_handler)
-// Stack segment fault.
-INTERRUPT_ERROR(0x0c, interrupt_handler)
-// General protection.
-INTERRUPT_ERROR(0x0d, interrupt_handler)
-// Page fault.
-INTERRUPT_ERROR(0x0e, interrupt_handler)
-// Intel reserved.
-.space 4
+INTERRUPT(0x00)                 // Divide error (`div` and `idiv`).
+INTERRUPT(0x01)                 // Debug exception.
+INTERRUPT(0x02)                 // Non maskable interrupt (NMI).
+INTERRUPT(0x03)                 // Breakpoint (`int $3`).
+INTERRUPT(0x04)                 // Overflow (`into`).
+INTERRUPT(0x05)                 // Bound range exception (`bound`).
+INTERRUPT(0x06)                 // Invalid opcode (`ud2`).
+INTERRUPT(0x07)                 // Device not available (`wait` and `fwait`).
+INTERRUPT_ERROR(0x08)           // Double fault (error code always 0).
+INTERRUPT(0x09)                 // Coprocessor segment overrun (floating-point
+                                // instructions).
+INTERRUPT_ERROR(0x0a)           // Invalid Task Statement Segment (TTS).
+INTERRUPT_ERROR(0x0b)           // Segment not present.
+INTERRUPT_ERROR(0x0c)           // Stack segment fault.
+INTERRUPT_ERROR(0x0d)           // General protection.
+INTERRUPT_ERROR(0x0e)           // Page fault.
+INTERRUPT(0x0f)                 // Intel reserved.
 
-// x87 FPU floating-point error.
-INTERRUPT(0x10, interrupt_handler)
-// Alignment check (error code always 0).
-INTERRUPT_ERROR(0x11, interrupt_handler)
-// Machine check.
-INTERRUPT(0x12, interrupt_handler)
-// SIMD floating-point exception.
-INTERRUPT(0x13, interrupt_handler)
-// Virtualization exception.
-INTERRUPT(0x14, interrupt_handler)
-// Intel reserved (0x15-0x1f).
-.space 44
+INTERRUPT(0x10)                 // x87 FPU floating-point error.
+INTERRUPT_ERROR(0x11)           // Alignment check (error code always 0).
+INTERRUPT(0x12)                 // Machine check.
+INTERRUPT(0x13)                 // SIMD floating-point exception.
+INTERRUPT(0x14)                 // Virtualization exception.
+INTERRUPT(0x15)                 // Intel reserved.
+INTERRUPT(0x16)                 // Intel reserved.
+INTERRUPT(0x17)                 // Intel reserved.
+INTERRUPT(0x18)                 // Intel reserved.
+INTERRUPT(0x19)                 // Intel reserved.
+INTERRUPT(0x1a)                 // Intel reserved.
+INTERRUPT(0x1b)                 // Intel reserved.
+INTERRUPT(0x1c)                 // Intel reserved.
+INTERRUPT(0x1d)                 // Intel reserved.
+INTERRUPT(0x1e)                 // Intel reserved.
+INTERRUPT(0x1f)                 // Intel reserved.
 
 // From here on interrupts are user-defined.
+INTERRUPT(0x20)                 // Programmable interrupt timer (PIT).
+INTERRUPT(0x21)                 // Keyboard interrupt.
+INTERRUPT(0x22)                 // Cascade (used internally by the programmable
+                                // interrupt controllers, never raised).
+INTERRUPT(0x23)                 // Serial communication port 2 (if enabled).
+INTERRUPT(0x24)                 // Serial communication port 1 (if enabled).
+INTERRUPT(0x25)                 // Parallel port 2 (if enabled).
+INTERRUPT(0x26)                 // Floppy disk.
+INTERRUPT(0x27)                 // Spurious interrupt (parallel port 1).
+INTERRUPT(0x28)                 // CMOS real-time clock (if enabled).
+INTERRUPT(0x29)                 // Free for peripherals.
+INTERRUPT(0x2a)                 // Free for peripherals.
+INTERRUPT(0x2b)                 // Free for peripherals.
+INTERRUPT(0x2c)                 // PS/2 mouse.
+INTERRUPT(0x2d)                 // FPU / coprocessor / inter-processor.
+INTERRUPT(0x2e)                 // Primary ATA hard disk.
+INTERRUPT(0x2f)                 // Secondary ATA hard disk.
 
-// Programmable interrupt timer (PIT).
-INTERRUPT_MASTER(0x20, interrupt_handler)
-// Keyboard interrupt.
-INTERRUPT_MASTER(0x21, keyboard_handler)
-// Cascade (used internally by the programmable interrupt controllers, never
-// raised).
-INTERRUPT_MASTER(0x22, interrupt_handler)
-// Serial communication port 2 (if enabled).
-INTERRUPT_MASTER(0x23, interrupt_handler)
-// Serial communication port 1 (if enabled).
-INTERRUPT_MASTER(0x24, interrupt_handler)
-// Parallel port 2 (if enabled).
-INTERRUPT_MASTER(0x25, interrupt_handler)
-// Floppy disk.
-INTERRUPT_MASTER(0x26, interrupt_handler)
-// Spurious interrupt (parallel port 1).
-INTERRUPT_MASTER(0x27, interrupt_handler)
-// CMOS real-time clock (if enabled).
-INTERRUPT_SLAVE(0x28, interrupt_handler)
-// Free for peripherals.
-INTERRUPT_SLAVE(0x29, interrupt_handler)
-// Free for peripherals.
-INTERRUPT_SLAVE(0x2a, interrupt_handler)
-// Free for peripherals.
-INTERRUPT_SLAVE(0x2b, interrupt_handler)
-// PS/2 mouse.
-INTERRUPT_SLAVE(0x2c, interrupt_handler)
-// FPU / coprocessor / inter-processor.
-INTERRUPT_SLAVE(0x2d, interrupt_handler)
-// Primary ATA hard disk.
-INTERRUPT_SLAVE(0x2e, interrupt_handler)
-// Secondary ATA hard disk.
-INTERRUPT_SLAVE(0x2f, interrupt_handler)
+INTERRUPT(SYSCALL_INTERRUPT)
 
-.space 512 - (. - interrupts)
-INTERRUPT(0x80, syscall_handler)
-
-.space 1024 - (. - interrupts)  // Pad `uintptr_t interrupts[256]`.
+.data
+        .long 0                 // Null-terminate `interrupts`.

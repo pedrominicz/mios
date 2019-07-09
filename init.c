@@ -17,8 +17,7 @@ static uint64_t gdt[6] = {
 
 // Task state segment (TSS).
 static uint32_t tss[26] = {
-  [1] = 0, // Stack pointer (ring 0).
-  [2] = KERNEL_DATA_SELECTOR, // Stack segment (ring 0).
+  [2] = KERNEL_DATA_SELECTOR, // Kernel stack segment.
   // Make segment registers accessible from privilege level-3, i.e. user mode.
   [18] = KERNEL_DATA_SELECTOR + 3, // Extra segment.
   [19] = KERNEL_CODE_SELECTOR + 3, // Code segment.
@@ -48,6 +47,8 @@ void init(void) {
   gdt_descriptor |= (uint64_t)(uintptr_t)gdt << 16;
 
   asm volatile ("lgdt (%0)" :: "r"(&gdt_descriptor));
+
+  asm volatile ("int $0x30");
 
   while(1) {
     asm volatile ("hlt");
