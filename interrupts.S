@@ -1,3 +1,5 @@
+#include "interrupt.h"
+
 .code32
 
 .text
@@ -92,7 +94,11 @@ INTERRUPT(0x2d)                 // FPU / coprocessor / inter-processor.
 INTERRUPT(0x2e)                 // Primary ATA hard disk.
 INTERRUPT(0x2f)                 // Secondary ATA hard disk.
 
-INTERRUPT(0x30)                 // System call.
+.if (. - interrupts) != (SYSCALL_INTERRUPT * 4)
+        .err
+.endif
+
+INTERRUPT(SYSCALL_INTERRUPT)
 
 .data
         .long 0                 // Null-terminate `interrupts`.

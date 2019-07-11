@@ -3,6 +3,8 @@
 
 #define SYSCALL_INTERRUPT 0x30 // Same as in "interrupts.S".
 
+#ifndef __ASSEMBLER__
+
 #include <stdint.h>
 
 typedef struct InterruptFrame {
@@ -35,5 +37,7 @@ typedef struct InterruptFrame {
 void init_idt(void);
 // Initialize programmable interrupt controller (PIC).
 void init_pic(void);
+
+#endif // __ASSEMBLER__
 
 #endif // MIOS_INTERRUPT_H

@@ -65,8 +65,10 @@ void init(void) {
          "Unsigned hexadecimal with zero padding: %010x\n", 1234, 0xabcd);
   printf("Unsigned decimal with space padding:     % 10u\n"
          "Unsigned hexadecimal with space padding: % 10x\n", 1234, 0xabcd);
-
-  asm volatile ("int $0x9");
+  printf("Extremely long pad: %050u\n", 1);
+  printf("Unknown format sequence: %020d\n");
+  printf("Percent sign: %%\n");
+  printf("Malformatted percent sign: %999%\n");
 
   while(1) {
     asm volatile ("hlt");
