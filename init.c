@@ -1,6 +1,5 @@
 #include "interrupt.h"
 #include "memory.h"
-#include "terminal.h"
 #include "util.h"
 
 #include <stddef.h>
@@ -32,7 +31,6 @@ static uint32_t tss[26] = {
 };
 
 void init(void) {
-  init_terminal();
   init_idt();
 
   init_kernel_page_directory();

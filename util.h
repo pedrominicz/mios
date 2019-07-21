@@ -3,8 +3,18 @@
 
 #include <stdint.h>
 
-void putchar(char c);
-void printf(const char* format, ...);
+#ifdef DEBUG
+#define DEBUG_TEST 1
+#else
+#define DEBUG_TEST 0
+#endif
+
+#define putchar(c) do { if(DEBUG_TEST) _putchar(c); } while(0)
+#define printf(format, ...) \
+  do { if(DEBUG_TEST) _printf(format, ##__VA_ARGS__); } while(0)
+
+void _putchar(char c);
+void _printf(const char* format, ...);
 
 static inline uintmax_t max(uintmax_t a, uintmax_t b) { return a > b ? a : b; }
 static inline uintmax_t min(uintmax_t a, uintmax_t b) { return a < b ? a : b; }
