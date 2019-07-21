@@ -68,6 +68,11 @@ void init(void) {
   printf("Percent sign: %%\n");
   printf("Malformatted percent sign: %999%\n");
 
+  printf("Good bye carriage return world.\r");
+  printf("Hello carriage return world.   \n");
+
+  printf("\n\n\n\nLast line...\n");
+
   while(1) {
     asm volatile ("hlt");
   }

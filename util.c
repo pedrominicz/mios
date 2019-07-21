@@ -1,4 +1,5 @@
 #include "util.h"
+#include "memory.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -6,7 +7,9 @@
 #include <stdint.h>
 
 static const uint16_t port = 0x03f8;
-static uint8_t* const terminal = (uint8_t*)0xf00b8000;
+// Static objects must be initialized with constant expressions. Only literals
+// can be `const` so `physical_to_virtual(0xb8000)` cannot be used.
+static uint8_t* const terminal = (uint8_t*)(0xb8000 + KERNEL_OFFSET);
 static volatile size_t cursor_x = 0, cursor_y = 0;
 
 static void init_terminal(void) {
@@ -39,8 +42,8 @@ static void terminal_scroll(void) {
   }
 
   // Clear last line.
-  for(size_t x = 0; x < 80; ++x) {
-    terminal[2 * (24 * 80 + x)] = ' ';
+  for(size_t i = 0; i < 80; ++i) {
+    terminal[2 * (24 * 80 + i)] = ' ';
   }
 }
 
@@ -56,24 +59,30 @@ void _putchar(char c) {
   // Write character to serial port 1.
   outb(port, c);
 
+  if(cursor_x >= 80) {
+    cursor_x = 0;
+    cursor_y += 1;
+  }
+
   if(cursor_y >= 25) {
     terminal_scroll();
     cursor_y = 24;
   }
 
-  if(c == '\n') {
-    cursor_x = 0;
+  switch(c) {
+  case '\n':
     cursor_y += 1;
-  } else if (c == '\t') {
+    // Fallthrough.
+  case '\r':
+    cursor_x = 0;
+    break;
+  case '\t':
     cursor_x -= cursor_x % 8;
     cursor_x += 8;
-  } else {
+    break;
+  default:
     terminal[2 * (cursor_y * 80 + cursor_x++)] = c;
-  }
-
-  if(cursor_x >= 80) {
-    cursor_x = 0;
-    cursor_y += 1;
+    break;
   }
 }
 
