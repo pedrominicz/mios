@@ -15,6 +15,10 @@ interrupt_common:
         push %esp
         call interrupt_handler
         add $4, %esp
+        // Fallthrough.
+
+.global interrupt_return        // `void interrupt_return(void)`
+interrupt_return:
         popa
         pop %gs
         pop %fs
@@ -37,8 +41,8 @@ interrupt_##n:                  \
 
 .data
 .balign 4
-.global interrupts
-interrupts:                     // `const uintptr_t interrupts[]`.
+.global interrupts              // `const uintptr_t interrupts[]`.
+interrupts:
 
 INTERRUPT(0x00)                 // Divide error (`div` and `idiv`).
 INTERRUPT(0x01)                 // Debug exception.

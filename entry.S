@@ -83,6 +83,6 @@ init_gdt_descriptor:
 multiboot_magic:
         .long 0
 
-.global multiboot_info_address
-multiboot_info_address:         // `const uintptr_t multiboot_info_address`.
+.global multiboot_info_address  // `const uintptr_t multiboot_info_address`.
+multiboot_info_address:
         .long 0

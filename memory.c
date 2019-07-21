@@ -62,11 +62,16 @@ void init_kernel_page_directory(void) {
 }
 
 void init_kernel_malloc(void) {
+  extern const uint32_t multiboot_magic; // Defined in "entry.S".
   extern const uintptr_t multiboot_info_address; // Defined in "entry.S".
   const MultibootInfo* const multiboot_info =
     physical_to_virtual(multiboot_info_address);
 
-  if(!(multiboot_info->flags & 0x00000040)) {
+  if(multiboot_magic != 0x2badb002) {
+    die("Incorrect Multiboot magic (0x%8lx)!\n", multiboot_magic);
+  }
+
+  if(!(multiboot_info->flags & 0x40)) {
     die("Boot loader did not provide physical memory map!\n");
   }
 
