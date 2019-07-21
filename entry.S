@@ -38,13 +38,13 @@ entry:
         popf
 
         lgdt (init_gdt_descriptor)
-        mov $KERNEL_DATA_SELECTOR, %ax
+        mov $KERNEL_DATA_SEGMENT, %ax
         mov %ax, %ds
         mov %ax, %es
         mov %ax, %fs
         mov %ax, %gs
         mov %ax, %ss
-        jmp $KERNEL_CODE_SELECTOR, $1f
+        jmp $KERNEL_CODE_SEGMENT, $1f
 1:
 
         call init               // Should never return. If it does, hang.

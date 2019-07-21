@@ -4,17 +4,20 @@
 #include <stdint.h>
 
 #ifdef DEBUG
-#define DEBUG_TEST 1
+# define DEBUG_TEST 1
 #else
-#define DEBUG_TEST 0
+# define DEBUG_TEST 0
 #endif
 
-#define putchar(c) do { if(DEBUG_TEST) _putchar(c); } while(0)
-#define printf(format, ...) \
-  do { if(DEBUG_TEST) _printf(format, ##__VA_ARGS__); } while(0)
+#define putchar(c) if(DEBUG_TEST) _putchar(c)
+#define printf(format, ...) if(DEBUG_TEST) _printf(format, ##__VA_ARGS__)
+
+#define die(format, ...) \
+  printf(format, ##__VA_ARGS__); \
+  while(1) asm volatile ("cli; hlt")
 
 void _putchar(char c);
-void _printf(const char* format, ...);
+void _printf(const char* format, ...) __attribute__((format(printf, 1, 2)));
 
 static inline uintmax_t max(uintmax_t a, uintmax_t b) { return a > b ? a : b; }
 static inline uintmax_t min(uintmax_t a, uintmax_t b) { return a < b ? a : b; }

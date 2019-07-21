@@ -1,5 +1,5 @@
-#include "util.h"
 #include "memory.h"
+#include "util.h"
 
 #include <stdarg.h>
 #include <stdbool.h>
@@ -126,13 +126,9 @@ void _printf(const char* format, ...) {
 
     // Flags field.
     bool pad_zero = false;
-    switch(*format) {
-    case '0':
+    if(*format == '0') {
       pad_zero = true;
-      // Fallthrough.
-    case ' ':
       ++format;
-      break;
     }
 
     // Width field.
@@ -143,9 +139,16 @@ void _printf(const char* format, ...) {
     }
 
     // Length field.
-    bool z = false;
-    if(*format == 'z') {
-      z = true;
+    size_t size = sizeof(int);
+    if(*format == 'l') {
+      size = sizeof(long);
+      ++format;
+      if(*format == 'l') {
+        size = sizeof(long long);
+        ++format;
+      }
+    } else if(*format == 'z') {
+      size = sizeof(size_t);
       ++format;
     }
 
@@ -165,10 +168,14 @@ void _printf(const char* format, ...) {
       hex = true;
       // Fallthrough.
     case 'u': // Unsigned decimal number.
-      if(z) {
-        print_unsigned(va_arg(ap, uint64_t), hex, pad, pad_zero);
-      } else {
+      if(size == sizeof(int)) {
         print_unsigned(va_arg(ap, unsigned int), hex, pad, pad_zero);
+      } else if(size == sizeof(long)) {
+        print_unsigned(va_arg(ap, unsigned long), hex, pad, pad_zero);
+      } else if(size == sizeof(long long)) {
+        print_unsigned(va_arg(ap, unsigned long long), hex, pad, pad_zero);
+      } else if(size == sizeof(size_t)) {
+        print_unsigned(va_arg(ap, size_t), hex, pad, pad_zero);
       }
       break;
     case '%': // Percent sign.
