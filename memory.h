@@ -7,6 +7,9 @@
 
 #define KERNEL_CODE_SEGMENT     0x0008
 #define KERNEL_DATA_SEGMENT     0x0010
+#define USER_CODE_SEGMENT       (0x0018 | 3)
+#define USER_DATA_SEGMENT       (0x0020 | 3)
+#define TASK_STATE_SEGMENT      (0x0028 | 3)
 
 #ifndef __ASSEMBLER__
 
@@ -20,6 +23,8 @@ void init_gdt(void);
 
 void free_page(void* page);
 void* malloc_page(void);
+
+void set_kernel_stack(void* kernel_stack);
 
 static inline uintptr_t virtual_to_physical(const void* const address) {
   return (uintptr_t)address - KERNEL_OFFSET;

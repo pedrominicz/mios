@@ -2,17 +2,13 @@ You need a cross-compiler for this to work. `./run` to build and run.
 
 ### useful resources
 
-https://stackoverflow.com/questions/1644868/define-macro-for-debug-printing-in-c
+https://github.com/mit-pdos/xv6-public/blob/master/proc.h
 
-https://stackoverflow.com/questions/3025050/error-initializer-element-is-not-constant-when-trying-to-initialize-variable-w
+https://github.com/mit-pdos/xv6-public/blob/master/swtch.S
 
-https://wiki.osdev.org/Global_Descriptor_Table
+https://wiki.osdev.org/System_V_ABI
 
-https://wiki.osdev.org/Task_State_Segment
-
-https://github.com/mit-pdos/xv6-public/blob/master/kalloc.c
-
-https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Boot-information-format
+https://git.musl-libc.org/cgit/musl/tree/src/setjmp/i386
 
 https://github.com/daviddwlee84/OperatingSystem/blob/master/Notes/XV6/slides/XV6_thread_presentation.pdf
 

@@ -58,6 +58,11 @@ void init_pic(void) {
 }
 
 void interrupt_handler(const InterruptFrame* const frame) {
+  if(frame->interrupt_number == SYSCALL_INTERRUPT) {
+    printf("Syscall.\n");
+    return;
+  }
+
   printf("Interrupt 0x%02lx (error code 0x%08lx).\n\n",
       frame->interrupt_number, frame->interrupt_error_code);
 

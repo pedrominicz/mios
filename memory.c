@@ -115,7 +115,7 @@ void init_gdt(void) {
   gdt_descriptor |= sizeof(gdt) - 1;
   gdt_descriptor |= (uint64_t)(uintptr_t)gdt << 16;
 
-  asm volatile ("lgdt (%0)" :: "r"(&gdt_descriptor));
+  asm volatile ("lgdt (%0);" :: "r"(&gdt_descriptor));
 }
 
 void free_page(void* page) {
@@ -133,4 +133,9 @@ void* malloc_page(void) {
     }
   }
   return ret;
+}
+
+void set_kernel_stack(void* kernel_stack) {
+  tss[1] = (uintptr_t)kernel_stack;
+  asm volatile ("ltr %w0" :: "r"(TASK_STATE_SEGMENT));
 }

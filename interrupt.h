@@ -38,6 +38,10 @@ void init_idt(void);
 // Initialize programmable interrupt controller (PIC).
 void init_pic(void);
 
+static inline void syscall(void) {
+  asm volatile ("int $0x30");
+}
+
 #endif // __ASSEMBLER__
 
 #endif // MIOS_INTERRUPT_H
