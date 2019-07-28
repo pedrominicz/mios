@@ -148,33 +148,41 @@ static void page_fault_print_error(const uint32_t error_code) {
   putchar('\n');
 }
 
+void hack(void); // Defined in "init.c".
+
 void interrupt_handler(const InterruptFrame* const frame) {
   if(frame->interrupt_number == SYSCALL_INTERRUPT) {
-    printf("Syscall.\n");
+    printf("%s", (char*)frame->eax);
+    hack();
     return;
   }
 
-  const char* const name = interrupt_name[frame->interrupt_number] ?
-    interrupt_name[frame->interrupt_number] :
-    "unknown interrupt";
+  // Breakpoint interrupt used as an easy way to print all registers.
+  if(frame->interrupt_number != 3) {
+    const char* const name = interrupt_name[frame->interrupt_number] ?
+      interrupt_name[frame->interrupt_number] :
+      "unknown interrupt";
 
-  printf("Interrupt 0x%02lx (%s). Error code 0x%08lx.\n\n",
-      frame->interrupt_number, name, frame->interrupt_error_code);
+    printf("Interrupt 0x%02lx (%s). Error code 0x%08lx.\n\n",
+        frame->interrupt_number, name, frame->interrupt_error_code);
 
-  if(interrupt_print_error[frame->interrupt_number]) {
-    interrupt_print_error[frame->interrupt_number](frame->interrupt_error_code);
+    if(interrupt_print_error[frame->interrupt_number]) {
+      interrupt_print_error[frame->interrupt_number](frame->interrupt_error_code);
+    }
   }
 
   printf("    eax 0x%08lx    ecx 0x%08lx    edx 0x%08lx    ebx 0x%08lx\n"
-         "   _esp 0x%08lx    ebp 0x%08lx    esi 0x%08lx    edi 0x%08lx\n"
-         "    eip 0x%08lx eflags 0x%08lx     cs 0x%04lx\n"
-         "     ds 0x%04lx         es 0x%04lx         fs 0x%04lx         gs 0x%04lx\n"
-         "    esp 0x%08lx     ss 0x%04lx\n",
+      "   _esp 0x%08lx    ebp 0x%08lx    esi 0x%08lx    edi 0x%08lx\n"
+      "    eip 0x%08lx eflags 0x%08lx     cs 0x%04lx\n"
+      "     ds 0x%04lx         es 0x%04lx         fs 0x%04lx         gs 0x%04lx\n"
+      "    esp 0x%08lx     ss 0x%04lx\n",
       frame->eax, frame->ecx, frame->edx, frame->ebx,
       frame->_esp, frame->ebp, frame->esi, frame->edi,
       frame->eip, frame->eflags, frame->cs,
       frame->ds, frame->es, frame->fs, frame->gs,
       frame->esp, frame->ss);
+
+  if(frame->interrupt_number == 3) return;
 
   while(1) {
     asm volatile ("cli; hlt");

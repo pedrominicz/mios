@@ -38,8 +38,8 @@ void init_idt(void);
 // Initialize programmable interrupt controller (PIC).
 void init_pic(void);
 
-static inline void syscall(void) {
-  asm volatile ("int $0x30");
+static inline void syscall(const char* const msg) {
+  asm volatile ("int $0x30" :: "a"(msg));
 }
 
 #endif // __ASSEMBLER__

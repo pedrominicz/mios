@@ -4,7 +4,7 @@ LD = $(TOOLPREFIX)ld
 # C preprocessor.
 CPP = $(TOOLPREFIX)cpp
 
-CFLAGS = -pedantic -Wall -Wextra -Werror -O3 -DDEBUG
+CFLAGS = -pedantic -Wall -Wextra -Werror -O0 -DDEBUG
 # Generate code for 32-bit ABI.
 CFLAGS += -m32
 # No position-independent code

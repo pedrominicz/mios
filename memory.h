@@ -19,12 +19,9 @@ extern uint32_t kernel_page_directory[1024]; // Defined in "entry.S".
 
 void init_kernel_page_directory(void);
 void init_kernel_malloc(void);
-void init_gdt(void);
 
 void free_page(void* page);
 void* malloc_page(void);
-
-void set_kernel_stack(void* kernel_stack);
 
 static inline uintptr_t virtual_to_physical(const void* const address) {
   return (uintptr_t)address - KERNEL_OFFSET;
