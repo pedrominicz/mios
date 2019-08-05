@@ -7,7 +7,7 @@ CPP = $(TOOLPREFIX)cpp
 CFLAGS = -pedantic -Wall -Wextra -Werror -O0 -DDEBUG
 # Generate code for 32-bit ABI.
 CFLAGS += -m32
-# No position-independent code
+# No position-independent code.
 CFLAGS += -fno-pic -fno-pie
 # No extra code to check for buffer overflows, such as stack smashing attacks.
 CFLAGS += -fno-stack-protector
@@ -26,9 +26,10 @@ OBJ = $(ASM:.S=.o) $(SRC:.c=.o)
 
 all: mios.iso
 
-mios.iso: mios.bin grub.cfg
+mios.iso: mios.bin grub.cfg module.txt
 	mkdir -p isodir/boot/grub
 	cp mios.bin isodir/boot/mios.bin
+	cp module.txt isodir/boot/module.txt
 	cp grub.cfg isodir/boot/grub/grub.cfg
 	grub-mkrescue -o mios.iso isodir
 

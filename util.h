@@ -9,12 +9,15 @@
 # define DEBUG_TEST 0
 #endif
 
-#define putchar(c) if(DEBUG_TEST) _putchar(c)
-#define printf(format, ...) if(DEBUG_TEST) _printf(format, ##__VA_ARGS__)
+#define putchar(c) do { if(DEBUG_TEST) _putchar(c); } while(0)
+#define printf(format, ...) \
+  do { if(DEBUG_TEST) _printf(format, ##__VA_ARGS__); } while(0)
 
-#define die(format, ...) \
-  printf(format, ##__VA_ARGS__); \
-  while(1) asm volatile ("cli; hlt")
+#define die(...) \
+  do {                                  \
+    printf(__VA_ARGS__);                \
+    while(1) asm volatile ("cli; hlt"); \
+  } while(0)
 
 void _putchar(char c);
 void _printf(const char* format, ...) __attribute__((format(printf, 1, 2)));

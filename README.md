@@ -2,6 +2,10 @@ You need a cross-compiler for this to work. `./run` to build and run.
 
 ### useful resources
 
+https://wiki.osdev.org/Initrd#Setup_in_a_multiboot-compliant_kernel
+
+https://www.gnu.org/software/grub/manual/multiboot/multiboot.html#Boot-information-format
+
 https://wiki.osdev.org/System_V_ABI
 
 https://github.com/daviddwlee84/OperatingSystem/blob/master/Notes/XV6/slides/XV6_thread_presentation.pdf

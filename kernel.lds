@@ -3,8 +3,7 @@
 OUTPUT_ARCH("i386")
 ENTRY(entry)
 
-SECTIONS
-{
+SECTIONS {
   . = KERNEL_VIRTUAL_BASE;
 
   .text : AT(ADDR(.text) - KERNEL_OFFSET) { *(.multiboot) *(.text) }

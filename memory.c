@@ -6,10 +6,19 @@
 
 typedef struct MultibootInfo {
   uint32_t flags;
-  uint32_t _[10];
+  uint32_t _0[4];
+  uint32_t module_map_count;
+  uint32_t module_map_address;
+  uint32_t _1[4];
   uint32_t memory_map_size;
   uint32_t memory_map_address;
 } MultibootInfo;
+
+typedef struct MultibootModuleInfo {
+  uint32_t start;
+  uint32_t end;
+  uint32_t _[2];
+} MultibootModuleInfo;
 
 typedef struct MultibootMemoryRegion {
   uint32_t _;
@@ -43,7 +52,18 @@ void init_kernel_malloc(void) {
     physical_to_virtual(multiboot_info_address);
 
   if(multiboot_magic != 0x2badb002) {
-    die("Incorrect Multiboot magic (0x%8lx)!\n", multiboot_magic);
+    die("Incorrect Multiboot magic (0x%08lx)!\n", multiboot_magic);
+  }
+
+  if(multiboot_info->module_map_count < 1) {
+    die("No boot modules found!\n");
+  }
+
+  const MultibootModuleInfo* const module_info =
+    physical_to_virtual(multiboot_info->module_map_address);
+
+  for(size_t i = module_info->start; i < module_info->end; ++i) {
+    putchar(*(char*)physical_to_virtual(i));
   }
 
   if(!(multiboot_info->flags & 0x40)) {
