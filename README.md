@@ -1,6 +1,19 @@
+# mios: an experimental educational operating system
+
+mios is an educational operating system made to explore various low-level operating system technicalities. As it stands, it demonstrated various such functions:
+
+- Virtual memory mapping and a higher-half kernel
+- Interrupt handling
+- Entering and exiting user mode
+- System calls
+- Printing to the terminal and serial ports
+- Multiboot modules
+
+Each commit contains significant progress and a "useful resources" section on the README containing key reference material. A serious attempt was made to keep the code as clean and well documented with comments as possible, so the commit history in of itself should be instructive.
+
 You need a cross-compiler for this to work. `./run` to build and run.
 
-### useful resources
+### Useful resources
 
 https://wiki.osdev.org/Initrd#Setup_in_a_multiboot-compliant_kernel
 
